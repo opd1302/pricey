@@ -1,0 +1,17 @@
+# Tells Render (render.com) how to run Pricey. In the Render dashboard choose
+# New > Blueprint and pick this repository; Render reads this file.
+#
+# One web service runs everything: it builds the pages, then `npm start`
+# runs the game server, which serves the pages and private games (/ws).
+services:
+  - type: web
+    name: pricey
+    runtime: node
+    plan: free
+    # Vite (which builds the pages) is a dev dependency, so include those.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
