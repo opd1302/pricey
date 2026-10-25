@@ -18,6 +18,15 @@
       href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
+    <!-- Opt in to animated page changes here, not only in style.css, so the
+         browser always sees it in time (an external stylesheet can be too late). -->
+    <style>
+      @media (prefers-reduced-motion: no-preference) {
+        @view-transition {
+          navigation: auto;
+        }
+      }
+    </style>
     <link rel="stylesheet" href="/src/style.css" />
     <title>Pricey: the daily price auction</title>
   </head>

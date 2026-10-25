@@ -1073,12 +1073,8 @@ code {
 /* ---------- Page transitions ---------- */
 
 /* Going from the home page to the game, the catalogue card turns into the
-   lot card. Both have view-transition-name: puzzle-card. */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-}
+   lot card. Both have view-transition-name: puzzle-card. (Pages opt in to
+   these animations with a small <style> in each HTML file's <head>.) */
 
 ::view-transition-group(puzzle-card) {
   animation-duration: 0.5s;

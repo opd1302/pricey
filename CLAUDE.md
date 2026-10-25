@@ -47,7 +47,7 @@ Theme: a quiet evening **auction house** (chosen by the user). Deep navy backgro
 
 The user wants it calm, readable and hand-made rather than "vibe-coded", and pushed back when an earlier version copied a reference site (Film Link) too closely. Take inspiration from references, never their look wholesale: no cream paper + condensed all-caps poster type + chunky offset-shadow buttons + tilted stickers + headline-left/card-right hero.
 
-Animation uses View Transitions: `.puzzle-card` has `view-transition-name: puzzle-card`, so the home catalogue card morphs into the game's lot card across pages (`@view-transition { navigation: auto }`), and `play.ts` `animate()` does a page-turn between lots. Browsers without support just switch instantly; reduced-motion users get no animation.
+Animation uses View Transitions: `.puzzle-card` has `view-transition-name: puzzle-card`, so the home catalogue card morphs into the game's lot card across pages (opt-in `@view-transition { navigation: auto }` is an inline `<style>` in each HTML head: in the built site the external stylesheet sometimes arrived too late and Chrome skipped the transition), and `play.ts` `animate()` does a page-turn between lots. Browsers without support just switch instantly; reduced-motion users get no animation.
 
 ## The user
 
