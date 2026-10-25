@@ -1,6 +1,5 @@
 export interface Item {
   id: string;
-  emoji: string;
   name: string;
   /** Pins down which price we mean, e.g. "US launch price, 1989". */
   detail: string;
@@ -16,7 +15,6 @@ export const ITEMS: Item[] = [
   // Everyday
   {
     id: "costco-hotdog",
-    emoji: "🌭",
     name: "Costco hot dog & soda combo",
     detail: "Costco food court, US",
     category: "Everyday",
@@ -24,7 +22,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "costco-chicken",
-    emoji: "🍗",
     name: "Costco rotisserie chicken",
     detail: "Costco, US",
     category: "Everyday",
@@ -32,7 +29,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "costco-membership",
-    emoji: "🛒",
     name: "Costco Gold Star membership, one year",
     detail: "US price from September 2024",
     category: "Everyday",
@@ -40,7 +36,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "arizona-tea",
-    emoji: "🧃",
     name: "AriZona Iced Tea, 23 oz can",
     detail: "Price printed on the can, US",
     category: "Everyday",
@@ -48,7 +43,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "forever-stamp",
-    emoji: "✉️",
     name: "US Forever stamp",
     detail: "First-class postage, from July 2025",
     category: "Everyday",
@@ -56,7 +50,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "big-mac",
-    emoji: "🍔",
     name: "McDonald's Big Mac",
     detail: "Average US price, January 2025",
     category: "Everyday",
@@ -64,7 +57,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "netflix",
-    emoji: "📺",
     name: "Netflix Standard plan, one month",
     detail: "US price from January 2025",
     category: "Everyday",
@@ -72,7 +64,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "amazon-prime",
-    emoji: "📦",
     name: "Amazon Prime, one year",
     detail: "US price from 2022",
     category: "Everyday",
@@ -80,7 +71,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "nyc-subway",
-    emoji: "🚇",
     name: "New York City subway ride",
     detail: "Standard fare from January 2025",
     category: "Everyday",
@@ -90,7 +80,6 @@ export const ITEMS: Item[] = [
   // Tech
   {
     id: "game-boy",
-    emoji: "🎮",
     name: "Nintendo Game Boy",
     detail: "US launch price, 1989",
     category: "Tech",
@@ -98,7 +87,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "ipod",
-    emoji: "🎵",
     name: "Original Apple iPod (5 GB)",
     detail: "Launch price, 2001",
     category: "Tech",
@@ -106,7 +94,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "macintosh",
-    emoji: "🖥️",
     name: "Apple Macintosh 128K",
     detail: "Launch price, 1984",
     category: "Tech",
@@ -114,7 +101,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "apple-1",
-    emoji: "🍎",
     name: "Apple I computer",
     detail: "Launch price, 1976",
     category: "Tech",
@@ -122,7 +108,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "vision-pro",
-    emoji: "🥽",
     name: "Apple Vision Pro",
     detail: "US launch price, 2024",
     category: "Tech",
@@ -130,7 +115,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "playstation",
-    emoji: "🕹️",
     name: "Sony PlayStation",
     detail: "US launch price, 1995",
     category: "Tech",
@@ -138,7 +122,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "playstation-2",
-    emoji: "🕹️",
     name: "Sony PlayStation 2",
     detail: "US launch price, 2000",
     category: "Tech",
@@ -146,7 +129,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "sega-saturn",
-    emoji: "🪐",
     name: "Sega Saturn",
     detail: "US launch price, 1995",
     category: "Tech",
@@ -154,7 +136,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "nintendo-64",
-    emoji: "🎮",
     name: "Nintendo 64",
     detail: "US launch price, 1996",
     category: "Tech",
@@ -162,7 +143,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "switch-2",
-    emoji: "🎮",
     name: "Nintendo Switch 2",
     detail: "US launch price, 2025",
     category: "Tech",
@@ -170,7 +150,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "iphone",
-    emoji: "📱",
     name: "Original iPhone (4 GB)",
     detail: "Launch price, 2007",
     category: "Tech",
@@ -178,7 +157,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "dynatac",
-    emoji: "📞",
     name: "Motorola DynaTAC 8000X, the first handheld cell phone",
     detail: "Launch price, 1983",
     category: "Tech",
@@ -186,7 +164,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "commodore-64",
-    emoji: "⌨️",
     name: "Commodore 64 computer",
     detail: "Launch price, 1982",
     category: "Tech",
@@ -194,7 +171,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "raspberry-pi-5",
-    emoji: "🍓",
     name: "Raspberry Pi 5 (4 GB)",
     detail: "Launch price, 2023",
     category: "Tech",
@@ -202,7 +178,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "xbox",
-    emoji: "🟩",
     name: "Original Microsoft Xbox",
     detail: "US launch price, 2001",
     category: "Tech",
@@ -210,7 +185,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "steam-deck-oled",
-    emoji: "🎮",
     name: "Steam Deck OLED (512 GB)",
     detail: "Launch price, 2023",
     category: "Tech",
@@ -218,7 +192,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "airpods-pro",
-    emoji: "🎧",
     name: "Apple AirPods Pro (1st generation)",
     detail: "Launch price, 2019",
     category: "Tech",
@@ -226,7 +199,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "lego-falcon",
-    emoji: "🧱",
     name: "LEGO Star Wars UCS Millennium Falcon",
     detail: "US launch price, 2017",
     category: "Tech",
@@ -236,7 +208,6 @@ export const ITEMS: Item[] = [
   // History
   {
     id: "model-t",
-    emoji: "🚗",
     name: "Ford Model T",
     detail: "Launch price, 1908",
     category: "History",
@@ -244,7 +215,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "louisiana",
-    emoji: "🗺️",
     name: "The Louisiana Purchase",
     detail: "Paid by the US to France, 1803",
     category: "History",
@@ -252,7 +222,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "alaska",
-    emoji: "❄️",
     name: "The Alaska Purchase",
     detail: "Paid by the US to Russia, 1867",
     category: "History",
@@ -260,7 +229,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "babe-ruth",
-    emoji: "⚾",
     name: "Babe Ruth",
     detail: "Paid by the Yankees to the Red Sox for him, 1920",
     category: "History",
@@ -268,7 +236,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "disneyland-1955",
-    emoji: "🎢",
     name: "Disneyland adult admission",
     detail: "Opening year, 1955 (rides cost extra)",
     category: "History",
@@ -276,7 +243,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "coca-cola",
-    emoji: "🥤",
     name: "A bottle of Coca-Cola",
     detail: "Its fixed price from 1886 to 1959",
     category: "History",
@@ -284,7 +250,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "mcdonalds-1955",
-    emoji: "🍟",
     name: "McDonald's hamburger",
     detail: "Price in 1955",
     category: "History",
@@ -292,7 +257,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "woodstock",
-    emoji: "🎸",
     name: "Woodstock festival ticket",
     detail: "Three-day ticket bought in advance, 1969",
     category: "History",
@@ -300,7 +264,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "golden-gate",
-    emoji: "🌉",
     name: "Golden Gate Bridge",
     detail: "Construction cost, opened 1937",
     category: "History",
@@ -310,7 +273,6 @@ export const ITEMS: Item[] = [
   // Big money
   {
     id: "salvator-mundi",
-    emoji: "🖼️",
     name: "Salvator Mundi, a painting by Leonardo da Vinci",
     detail: "Auction price, 2017",
     category: "Big money",
@@ -318,7 +280,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "mantle-card",
-    emoji: "🃏",
     name: "1952 Topps Mickey Mantle baseball card",
     detail: "Auction price, 2022",
     category: "Big money",
@@ -326,7 +287,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "jordan-jersey",
-    emoji: "🏀",
     name: "Michael Jordan's jersey from the 1998 NBA Finals",
     detail: "Auction price, 2022",
     category: "Big money",
@@ -334,7 +294,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "double-eagle",
-    emoji: "🪙",
     name: "1933 Double Eagle $20 gold coin",
     detail: "Auction price, 2021",
     category: "Big money",
@@ -342,7 +301,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "comedian-banana",
-    emoji: "🍌",
     name: '"Comedian", a banana duct-taped to a wall (artwork)',
     detail: "Auction price, 2024",
     category: "Big money",
@@ -350,7 +308,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "trex-sue",
-    emoji: "🦖",
     name: '"Sue", a Tyrannosaurus rex skeleton',
     detail: "Auction price, 1997",
     category: "Big money",
@@ -358,7 +315,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "stegosaurus",
-    emoji: "🦕",
     name: '"Apex", a Stegosaurus skeleton',
     detail: "Auction price, 2024",
     category: "Big money",
@@ -366,7 +322,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "twitter",
-    emoji: "🐦",
     name: "Twitter",
     detail: "Bought by Elon Musk, 2022",
     category: "Big money",
@@ -374,7 +329,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "instagram",
-    emoji: "📸",
     name: "Instagram",
     detail: "Bought by Facebook, 2012",
     category: "Big money",
@@ -382,7 +336,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "whatsapp",
-    emoji: "💬",
     name: "WhatsApp",
     detail: "Bought by Facebook, 2014",
     category: "Big money",
@@ -390,7 +343,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "minecraft",
-    emoji: "⛏️",
     name: "Minecraft (the company Mojang)",
     detail: "Bought by Microsoft, 2014",
     category: "Big money",
@@ -398,7 +350,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "super-bowl-ad",
-    emoji: "🏈",
     name: "A 30-second Super Bowl TV ad",
     detail: "Super Bowl LIX, 2025 (approx.)",
     category: "Big money",
@@ -406,7 +357,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "jwst",
-    emoji: "🔭",
     name: "James Webb Space Telescope",
     detail: "Total cost to build and launch (approx.)",
     category: "Big money",
@@ -414,7 +364,6 @@ export const ITEMS: Item[] = [
   },
   {
     id: "burj-khalifa",
-    emoji: "🏙️",
     name: "Burj Khalifa",
     detail: "Construction cost, completed 2010 (approx.)",
     category: "Big money",

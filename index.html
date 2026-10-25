@@ -3,14 +3,136 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pricey is a free daily auction game: outbid three rival bidders for real-world lots, and score by paying less than they are worth. New sale every day."
+    />
+    <meta name="theme-color" content="#0e1420" />
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>"
+      href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2032%2032'%3E%3Crect%20width%3D'32'%20height%3D'32'%20rx%3D'7'%20fill%3D'%230e1420'%2F%3E%3Cg%20fill%3D'none'%20stroke%3D'%23d9b45f'%20stroke-width%3D'2.4'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cg%20transform%3D'rotate(-35%2015%2011)'%3E%3Crect%20x%3D'8'%20y%3D'6'%20width%3D'14'%20height%3D'9'%20rx%3D'2'%2F%3E%3Cpath%20d%3D'M15%2015v12'%2F%3E%3C%2Fg%3E%3Cpath%20d%3D'M5%2027h12'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"
     />
-    <title>Pricey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+    <title>Pricey: the daily price auction</title>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <header class="nav">
+      <a class="wordmark" href="./" aria-label="Pricey home">
+        <svg class="wordmark-gavel" viewBox="0 0 32 32" aria-hidden="true">
+          <g transform="rotate(-35 15 11)">
+            <rect x="8" y="6" width="14" height="9" rx="2" />
+            <path d="M15 15v12" />
+          </g>
+          <path d="M5 27h12" />
+        </svg>
+        Pricey
+      </a>
+      <nav class="nav-links">
+        <!-- Add links to new pages here, e.g. <a href="about/">About</a> -->
+        <a href="#how">How it works</a>
+        <a href="private/">Play with friends</a>
+        <a class="nav-play" href="play/">Play</a>
+      </nav>
+    </header>
+
+    <main class="home">
+      <section class="intro">
+        <p class="label label-gold">
+          The daily auction · No. <span id="puzzle-number"></span> ·
+          <span id="today-date"></span>
+        </p>
+        <h1 class="headline">What would you <em>pay</em> for&nbsp;it?</h1>
+        <p class="lede">
+          Five lots go under the hammer every day, and three rival bidders want
+          them too. Win things for less than they're really worth to score.
+          Overpay, and it costs you.
+        </p>
+        <a class="btn" id="play-button" href="play/">Enter today's auction</a>
+        <p class="fine-print">
+          Free · no sign-up · the same five lots for everyone
+        </p>
+      </section>
+
+      <section class="puzzle-card catalogue" aria-label="Today's catalogue">
+        <div class="catalogue-head">
+          <span class="label">Today's catalogue</span>
+          <span class="label" id="catalogue-status">Bidding open</span>
+        </div>
+        <ol class="catalogue-lots" id="lots"></ol>
+        <p class="room-today" id="room-today"></p>
+      </section>
+
+      <section class="friends">
+        <div>
+          <h2 class="section-title">Play with friends</h2>
+          <p>
+            Start a private game and share the code. Up to four of you bid on
+            the same five lots, picked at random, with rivals in any empty
+            seats. Play as many as you like.
+          </p>
+        </div>
+        <a class="btn" href="private/">Start a private game</a>
+      </section>
+
+      <section class="how" id="how">
+        <h2 class="section-title">How the auction works</h2>
+        <ol class="steps">
+          <li>
+            <span class="numeral">i.</span>
+            <h3>Bid against the room</h3>
+            <p>
+              One lot at a time, the price climbs. Raise the bid or drop out.
+              Whoever makes the last bid wins the lot.
+            </p>
+          </li>
+          <li>
+            <span class="numeral">ii.</span>
+            <h3>Pay less than it's worth</h3>
+            <p>
+              When the hammer falls, the real price is revealed. Win a lot below
+              it to score; pay over it and you lose points. Bid big on
+              everything and you'll come last.
+            </p>
+          </li>
+          <li>
+            <span class="numeral">iii.</span>
+            <h3>Beat the room</h3>
+            <p>
+              You're ranked against today's three rivals. Same lots and same
+              rivals for everyone, with a new sale at midnight.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="meet" id="bidders-section">
+        <h2 class="section-title">Meet the room</h2>
+        <p class="section-lede">
+          Three of them come to each sale. Margaret never misses one. Every
+          rival has habits: learn them, and you'll know when to push and when to
+          let go.
+        </p>
+        <ul class="bidder-cards" id="bidders"></ul>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <nav class="footer-links">
+        <!-- Add footer links here -->
+        <a href="play/">Play</a>
+        <a href="private/">Play with friends</a>
+        <a href="#how">How it works</a>
+        <a href="https://github.com/opd1302/pricey">GitHub</a>
+      </nav>
+      <p>Pricey · a new sale opens every day at midnight</p>
+    </footer>
+
+    <script type="module" src="/src/home.ts"></script>
   </body>
 </html>

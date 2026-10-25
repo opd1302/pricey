@@ -1,30 +1,29 @@
-// Scores are based on the *ratio* between guess and answer, not the dollar
-// difference, so a $2 miss on a $1 item counts as much as a $2 billion miss on
-// a $1 billion item. Guessing double is exactly as bad as guessing half.
+// You score for what you *save*: win a lot for less than it's really worth and
+// you gain points; pay more than it's worth and you lose them. Scores are a
+// share of the lot's value, not dollars, so a $2 hot dog matters as much as a
+// $2 billion company.
 
 export const MAX_POINTS = 1000;
-/** Guesses this many times too high (or too low) or worse score nothing. */
-export const ZERO_POINTS_RATIO = 4;
-/** Within 5% of the answer counts as a bullseye. */
-export const BULLSEYE_WITHIN = 0.05;
 
-export function scoreGuess(
-  guess: number,
-  actual: number,
-): { points: number; bullseye: boolean } {
-  const howFarOff = Math.abs(Math.log(guess / actual));
-  const closeness = 1 - howFarOff / Math.log(ZERO_POINTS_RATIO);
-  return {
-    points: Math.max(0, Math.round(MAX_POINTS * closeness)),
-    bullseye: Math.abs(guess - actual) <= actual * BULLSEYE_WITHIN,
-  };
+/** Buy at half its value: +500. Pay double or worse: −1000. */
+export function profitPoints(value: number, paid: number): number {
+  return Math.max(
+    -MAX_POINTS,
+    Math.round((MAX_POINTS * (value - paid)) / value),
+  );
 }
 
-/** The coloured square shown for a guess in the share text and progress bar. */
-export function tierEmoji(guess: number, actual: number): string {
-  const { points, bullseye } = scoreGuess(guess, actual);
-  if (bullseye) return "🎯";
-  if (points >= 800) return "🟩"; // within about 30%
-  if (points >= 500) return "🟨"; // within 2×
-  return "🟥";
+/** "+1,240", "−300", "0" */
+export function formatPoints(points: number): string {
+  const sign = points > 0 ? "+" : points < 0 ? "−" : "";
+  return sign + Math.abs(points).toLocaleString("en-US");
+}
+
+/** "1st", "2nd", "3rd", "4th" … */
+export function ordinal(n: number): string {
+  const suffix =
+    n % 100 >= 11 && n % 100 <= 13
+      ? "th"
+      : (["th", "st", "nd", "rd"][n % 10] ?? "th");
+  return `${n}${suffix}`;
 }

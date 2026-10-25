@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeMiss, formatPrice, parsePrice } from "./money";
+import { formatPrice, parsePrice } from "./money";
 
 describe("parsePrice", () => {
   it.each([
@@ -26,16 +26,5 @@ describe("formatPrice", () => {
     expect(formatPrice(1)).toBe("$1");
     expect(formatPrice(666.66)).toBe("$667");
     expect(formatPrice(44e9)).toBe("$44,000,000,000");
-  });
-});
-
-describe("describeMiss", () => {
-  it("uses percentages for near misses and multiples for big ones", () => {
-    expect(describeMiss(125, 100)).toBe("25% too high");
-    expect(describeMiss(60, 100)).toBe("40% too low");
-    expect(describeMiss(300, 100)).toBe("3.0× too high");
-    expect(describeMiss(10, 100)).toBe("10× too low");
-    expect(describeMiss(1500, 1e10)).toBe("6,666,667× too low");
-    expect(describeMiss(100, 100)).toBe("Spot on");
   });
 });

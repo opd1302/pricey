@@ -30,15 +30,3 @@ export function formatPrice(value: number): string {
     maximumFractionDigits: value < 100 ? 2 : 0,
   }).format(value);
 }
-
-/** "25% too high", "3.2× too low", "4,800× too low", "Spot on" */
-export function describeMiss(guess: number, actual: number): string {
-  const ratio = guess / actual;
-  const times = (n: number) =>
-    n >= 10 ? Math.round(n).toLocaleString("en-US") : n.toFixed(1);
-  if (ratio >= 2) return `${times(ratio)}× too high`;
-  if (ratio <= 0.5) return `${times(1 / ratio)}× too low`;
-  const percent = Math.round(Math.abs(ratio - 1) * 100);
-  if (percent === 0) return "Spot on";
-  return `${percent}% too ${ratio > 1 ? "high" : "low"}`;
-}

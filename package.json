@@ -4,17 +4,24 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n server,site -c blue,green \"tsx watch src/server/index.ts\" \"vite\"",
     "build": "vite build",
-    "preview": "vite preview",
+    "start": "tsx src/server/index.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/ws": "^8.18.2",
+    "concurrently": "^10.0.6",
     "prettier": "^3.9.10",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0"
   }
 }
