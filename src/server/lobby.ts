@@ -15,13 +15,16 @@ import {
   type TableLot,
 } from "../game/table";
 import {
-  LOBBY_SIZE,
-  LOTS_PER_GAME,
+  DEFAULT_SETTINGS,
+  LOT_OPTIONS,
+  MAX_SEATS,
   MIN_PEOPLE,
   TURN_SECONDS,
+  maxRivals,
   type LobbyView,
   type SeatView,
   type ServerMessage,
+  type Settings,
 } from "../multiplayer/protocol";
 
 /** A mistake by a player (e.g. a bad name). Its message is shown to them. */
@@ -31,9 +34,18 @@ export const MAX_NAME_LENGTH = 16;
 export const BOT_PAUSE_MS = 1200;
 export const REVEAL_MS = 8000;
 /** A person who has lost connection gets a much shorter turn. */
-export const AWAY_TURN_MS = 5000;
+export const AWAY_TURN_MS = 3000;
 const TURN_MS = TURN_SECONDS * 1000;
-const PEOPLE_COLOURS = ["#d9b45f", "#7fc8c2", "#e39a7a", "#a7b6f2"];
+const PEOPLE_COLOURS = [
+  "#d9b45f",
+  "#7fc8c2",
+  "#e39a7a",
+  "#a7b6f2",
+  "#c9a0dc",
+  "#9ccf7f",
+  "#e5c07b",
+  "#e58fae",
+];
 
 interface Person {
   id: string;
@@ -44,13 +56,14 @@ interface Person {
 }
 
 /**
- * One private game: the waiting room, then five lots played round the table,
+ * One private game: the waiting room, then the lots played round the table,
  * then the results. Lives only in the server's memory.
  */
 export class Lobby {
   private people: Person[] = [];
   private hostId = "";
   private phase: LobbyView["phase"] = "waiting";
+  private settings: Settings = { ...DEFAULT_SETTINGS };
   private seats: Seat[] = [];
   private items: Item[] = [];
   private lots: TableLot[] = [];
@@ -74,7 +87,7 @@ export class Lobby {
       throw new GameError(`Names can be at most ${MAX_NAME_LENGTH} letters.`);
     if (this.phase !== "waiting")
       throw new GameError("This game has already started.");
-    if (this.people.length >= LOBBY_SIZE)
+    if (this.people.length >= MAX_SEATS)
       throw new GameError("This game is full.");
     if (this.people.some((p) => p.name.toLowerCase() === name.toLowerCase()))
       throw new GameError("Someone in this game already has that name.");
@@ -88,6 +101,11 @@ export class Lobby {
     };
     this.people.push(person);
     if (!this.isConnected(this.hostId)) this.hostId = person.id;
+    // A bigger crowd leaves fewer seats for rivals.
+    this.settings.rivals = Math.min(
+      this.settings.rivals,
+      maxRivals(this.people.length),
+    );
     send({
       type: "joined",
       code: this.code,
@@ -121,7 +139,7 @@ export class Lobby {
     person.connected = false;
     if (id === this.hostId)
       this.hostId = this.people.find((p) => p.connected)?.id ?? id;
-    // If they were mid-turn, shorten it rather than wait the full 30 seconds.
+    // If they were mid-turn, shorten it rather than wait the full turn.
     const lot = this.currentLot();
     if (this.phase === "playing" && lot?.turn === id && this.turnEndsAt) {
       this.startPersonTurn(
@@ -137,6 +155,24 @@ export class Lobby {
     return !this.people.some((p) => p.connected);
   }
 
+  /** The host picks how many lots to play and how many rivals join. */
+  changeSettings(byId: string, settings: Settings): void {
+    this.requireHost(byId);
+    if (this.phase === "playing")
+      throw new GameError("You can't change settings mid-game.");
+    if (!LOT_OPTIONS.includes(settings.lots))
+      throw new GameError("That's not one of the lot options.");
+    const most = maxRivals(this.people.length);
+    if (
+      !Number.isInteger(settings.rivals) ||
+      settings.rivals < 0 ||
+      settings.rivals > most
+    )
+      throw new GameError(`There's room for up to ${most} rivals.`);
+    this.settings = { lots: settings.lots, rivals: settings.rivals };
+    this.broadcast();
+  }
+
   start(byId: string): void {
     this.requireHost(byId);
     if (this.phase === "playing")
@@ -148,8 +184,11 @@ export class Lobby {
 
     this.seed = Math.floor(this.random() * 2 ** 31);
     const random = seededRandom(this.seed);
-    this.items = shuffle(this.pool, random).slice(0, LOTS_PER_GAME);
-    const rivals = shuffle(BOTS, random).slice(0, LOBBY_SIZE - present.length);
+    this.items = shuffle(this.pool, random).slice(0, this.settings.lots);
+    const rivals = shuffle(BOTS, random).slice(
+      0,
+      Math.min(this.settings.rivals, maxRivals(present.length)),
+    );
     this.seats = [
       ...present.map((p) => ({ id: p.id, name: p.name })),
       ...rivals.map((bot) => ({ id: bot.id, name: bot.firstName, bot })),
@@ -281,6 +320,7 @@ export class Lobby {
         connected: p.connected,
       })),
       phase: this.phase,
+      settings: this.settings,
       seats: seatViews,
       favourite: this.seats.some((s) => s.id === "rupert")
         ? this.favourite
@@ -305,6 +345,7 @@ export class Lobby {
               ...lot.sold,
               worth: lot.item.price,
               points: tableLotPoints(lot),
+              fact: lot.item.fact,
             },
           }
         : null,

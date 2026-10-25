@@ -2,10 +2,26 @@
 // Shared by both sides so TypeScript catches any mismatch.
 import type { TableEvent } from "../game/table";
 
-export const LOBBY_SIZE = 4;
+/** Most bidders at one table, people and rivals together. */
+export const MAX_SEATS = 8;
 export const MIN_PEOPLE = 2;
-export const TURN_SECONDS = 30;
-export const LOTS_PER_GAME = 5;
+/** There are only five rival bots. */
+export const MAX_RIVALS = 5;
+export const TURN_SECONDS = 10;
+export const LOT_OPTIONS = [3, 5, 8, 10];
+
+/** Chosen by the host in the waiting room. */
+export interface Settings {
+  lots: number;
+  rivals: number;
+}
+
+export const DEFAULT_SETTINGS: Settings = { lots: 5, rivals: 2 };
+
+/** How many rivals can join, given how many people are in the game. */
+export function maxRivals(people: number): number {
+  return Math.max(0, Math.min(MAX_RIVALS, MAX_SEATS - people));
+}
 
 export interface SeatView {
   id: string;
@@ -37,6 +53,7 @@ export interface LotView {
     price: number;
     worth: number;
     points: number;
+    fact: string;
   } | null;
 }
 
@@ -61,6 +78,7 @@ export interface LobbyView {
     connected: boolean;
   }[];
   phase: "waiting" | "playing" | "finished";
+  settings: Settings;
   seats: SeatView[];
   /** Rupert's favourite category, if he's at the table. */
   favourite: string | null;
@@ -74,6 +92,7 @@ export type ClientMessage =
   | { type: "create"; name: string }
   | { type: "join"; code: string; name: string }
   | { type: "rejoin"; code: string; playerId: string; secret: string }
+  | { type: "settings"; settings: Settings }
   | { type: "start" }
   | { type: "bid"; amount: number }
   | { type: "drop" }

@@ -1,3 +1,4 @@
+import { avatarHtml, botLook } from "./avatars";
 import { BOTS } from "./game/bots";
 import { itemsForPuzzle, puzzleNumber } from "./game/daily";
 import { lotPoints, playDay, yourStanding } from "./game/day";
@@ -68,7 +69,7 @@ $("room-today").innerHTML = `
   <span class="room-faces">${day.room
     .map(
       (bot) =>
-        `<span class="face" style="--c: ${bot.colour}">${bot.initials}</span>`,
+        `${avatarHtml(botLook(bot.id, bot.colour), "idle", { bubble: false })}`,
     )
     .join("")}</span>
   <span>In the room today: ${names.slice(0, -1).join(", ")} and ${names.at(-1)}</span>`;
@@ -76,7 +77,7 @@ $("room-today").innerHTML = `
 $("bidders").innerHTML = BOTS.map(
   (bot) => `
     <li class="${here.has(bot.id) ? "is-here" : ""}">
-      <span class="face" style="--c: ${bot.colour}">${bot.initials}</span>
+      ${avatarHtml(botLook(bot.id, bot.colour), "idle", { bubble: false })}
       <div>
         <p class="bidder-title"><strong>${bot.name}</strong> <span>${bot.title}</span></p>
         <p class="bidder-blurb">${bot.blurb}</p>

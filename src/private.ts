@@ -1,22 +1,31 @@
 import { formatPrice, parsePrice } from "./game/money";
 import { formatPoints, ordinal } from "./game/scoring";
 import {
-  LOBBY_SIZE,
-  LOTS_PER_GAME,
+  LOT_OPTIONS,
+  MAX_SEATS,
   MIN_PEOPLE,
   TURN_SECONDS,
   type ClientMessage,
+  maxRivals,
   type LobbyView,
+  type SeatView,
   type ServerMessage,
 } from "./multiplayer/protocol";
 import {
   attachTurnControls,
   escapeHtml,
   eventHtml,
-  faceHtml,
   soldHtml,
   yourTurnHtml,
 } from "./ui";
+import {
+  avatarHtml,
+  botLook,
+  personLook,
+  roomMoods,
+  type Look,
+} from "./avatars";
+import type { BotId } from "./game/bots";
 
 // The private game page. The game server runs the auction; this page shows
 // whatever the server says and sends your moves back. Your seat is remembered
@@ -119,7 +128,12 @@ function render(): void {
   title.textContent = `Private game · ${lobby.code}`;
   const lot = lobby.lot;
   if (lobby.phase === "waiting") {
-    const key = JSON.stringify(["waiting", lobby.people, lobby.hostId]);
+    const key = JSON.stringify([
+      "waiting",
+      lobby.people,
+      lobby.hostId,
+      lobby.settings,
+    ]);
     draw(key, "lot", waitingHtml(lobby), attachWaiting);
   } else if (lobby.phase === "playing" && lot) {
     const key = JSON.stringify(["lot", lot.index, lot.events.length, lot.turn]);
@@ -154,8 +168,8 @@ function joinHtml(): string {
   const code = new URLSearchParams(location.search).get("code") ?? "";
   return `
     <h1 class="item-name">Play with friends</h1>
-    <p class="item-detail">Up to ${LOBBY_SIZE} of you bid on the same ${LOTS_PER_GAME} lots, picked at random.
-      Rivals take any empty seats. You get ${TURN_SECONDS} seconds a turn.</p>
+    <p class="item-detail">Bid against your friends on lots picked at random, with up to ${MAX_SEATS}
+      at the table. The host chooses how many lots and rivals. You get ${TURN_SECONDS} seconds a turn.</p>
     <hr class="rule" />
     <label class="field">
       <span class="label">Your name</span>
@@ -175,8 +189,13 @@ function joinHtml(): string {
 function waitingHtml(view: LobbyView): string {
   const isHost = view.hostId === view.you;
   const present = view.people.filter((p) => p.connected).length;
-  const empty = LOBBY_SIZE - view.people.length;
+  const most = maxRivals(view.people.length);
+  const rivals = Math.min(view.settings.rivals, most);
+  const open = MAX_SEATS - view.people.length - rivals;
   const host = view.people.find((p) => p.id === view.hostId);
+  const plural = (n: number, word: string) =>
+    `${n} ${word}${n === 1 ? "" : "s"}`;
+
   const rows = view.people.map((p) => {
     const tags = [
       p.id === view.hostId ? "Host" : "",
@@ -185,38 +204,56 @@ function waitingHtml(view: LobbyView): string {
     ].filter(Boolean);
     return `
       <li class="${p.connected ? "" : "away"}">
-        ${faceHtml(p.initials, p.colour)}
+        ${avatarHtml(personLook(p.name, p.colour), "idle", { bubble: false })}
         <span class="result-main">
           <span class="result-name">${escapeHtml(p.name)}</span>
           <span class="result-sub">${tags.join(" · ")}</span>
         </span>
       </li>`;
   });
-  for (let i = 0; i < empty; i++) {
+  for (let i = 0; i < rivals; i++) {
     rows.push(`
       <li class="empty-seat">
         <span class="face">?</span>
         <span class="result-main">
-          <span class="result-name">Empty seat</span>
-          <span class="result-sub">A rival takes it if nobody joins</span>
+          <span class="result-name">A rival</span>
+          <span class="result-sub">Picked at random when the game starts</span>
         </span>
       </li>`);
   }
+
+  const options = (values: number[], selected: number) =>
+    values
+      .map(
+        (v) =>
+          `<option value="${v}" ${v === selected ? "selected" : ""}>${v}</option>`,
+      )
+      .join("");
+  const settings = isHost
+    ? `<div class="settings">
+         <label class="field"><span class="label">Lots</span>
+           <select id="lots">${options(LOT_OPTIONS, view.settings.lots)}</select></label>
+         <label class="field"><span class="label">Rivals</span>
+           <select id="rivals">${options(
+             Array.from({ length: most + 1 }, (_, i) => i),
+             rivals,
+           )}</select></label>
+       </div>`
+    : `<p class="settings-note">${plural(view.settings.lots, "lot")} · ${plural(rivals, "rival")}</p>`;
   const startNote =
     present < MIN_PEOPLE
       ? "Share the code: you need at least one friend to start."
-      : empty > 0
-        ? `Rivals will take the ${empty} empty seat${empty === 1 ? "" : "s"}.`
-        : "Full house.";
+      : `${present + rivals} bidders at the table.`;
   return `
     <div class="lot-head">
       <span class="label">Game code</span>
-      <span class="label">${view.people.length} of ${LOBBY_SIZE} seats taken</span>
+      <span class="label">${plural(open, "seat")} open</span>
     </div>
     <p class="game-code">${view.code}</p>
     <button id="copy" class="btn-ghost copy-link">Copy invite link</button>
     <hr class="rule" />
     <ol class="seat-list">${rows.join("")}</ol>
+    ${settings}
     ${
       isHost
         ? `<button id="start" class="btn btn-block" ${present < MIN_PEOPLE ? "disabled" : ""}>Start the auction</button>
@@ -227,6 +264,13 @@ function waitingHtml(view: LobbyView): string {
     <button id="leave" class="text-link back-home link-button">Leave this game</button>`;
 }
 
+/** What a seat's avatar looks like: the bot's own look, or one picked from a person's name. */
+function lookOf(seat: SeatView): Look {
+  return seat.isBot
+    ? botLook(seat.id as BotId, seat.colour)
+    : personLook(seat.name, seat.colour);
+}
+
 function lotHtml(view: LobbyView): string {
   const lot = view.lot!;
   const name = (id: string) =>
@@ -234,21 +278,23 @@ function lotHtml(view: LobbyView): string {
       ? "You"
       : escapeHtml(view.seats.find((s) => s.id === id)?.name ?? "?");
   const latest = lot.events[lot.events.length - 1];
-  const speaking =
-    latest && (latest.kind === "bid" || latest.kind === "out")
-      ? latest.who
-      : null;
+  const moods = roomMoods({
+    bidders: view.seats.map((seat) => seat.id),
+    out: lot.out,
+    justBid: latest?.kind === "bid" ? latest.who : null,
+    turn: lot.turn,
+    sold: lot.sold,
+  });
 
   const room = view.seats
     .map((seat) => {
       const classes = [
         "bidder",
-        lot.leader === seat.id ? "leading" : "",
+        lot.leader === seat.id && !lot.sold ? "leading" : "",
         lot.out.includes(seat.id) ? "out" : "",
-        speaking === seat.id ? "speaking" : "",
         lot.turn === seat.id ? "turn" : "",
       ].join(" ");
-      return `<div class="${classes}">${faceHtml(seat.initials, seat.colour)}<span class="bidder-name">${name(seat.id)}</span></div>`;
+      return `<div class="${classes}">${avatarHtml(lookOf(seat), moods[seat.id])}<span class="bidder-name">${name(seat.id)}</span></div>`;
     })
     .join("");
 
@@ -260,6 +306,7 @@ function lotHtml(view: LobbyView): string {
       price: lot.sold.price,
       worth: lot.sold.worth,
       points: lot.sold.points,
+      fact: lot.sold.fact,
     });
   } else {
     const label =
@@ -283,7 +330,7 @@ function lotHtml(view: LobbyView): string {
   let controls: string;
   const turnSeat = view.seats.find((s) => s.id === lot.turn);
   if (lot.sold) {
-    const last = lot.index === LOTS_PER_GAME - 1;
+    const last = lot.index === view.settings.lots - 1;
     controls = `<p class="waiting">${last ? "Totting up the results…" : `Next lot in <span id="next-timer"></span>`}</p>`;
   } else if (lot.turn === view.you) {
     controls = yourTurnHtml(
@@ -298,7 +345,7 @@ function lotHtml(view: LobbyView): string {
 
   return `
     <div class="lot-head">
-      <span class="lot-no">Lot ${lot.index + 1}<span class="lot-of"> of ${LOTS_PER_GAME}</span></span>
+      <span class="lot-no">Lot ${lot.index + 1}<span class="lot-of"> of ${view.settings.lots}</span></span>
       <span class="label">${lot.category}</span>
     </div>
     <h1 class="item-name">${lot.name}</h1>
@@ -329,7 +376,7 @@ function resultsHtml(view: LobbyView): string {
       return `
         <li class="${s.id === view.you ? "is-you" : ""}" style="--i: ${i}">
           <span class="lot-no">${i + 1}</span>
-          ${faceHtml(who.initials, who.colour)}
+          ${avatarHtml(lookOf(who), "idle", { bubble: false })}
           <span class="result-main">
             <span class="result-name">${s.id === view.you ? "You" : escapeHtml(who.name)}${who.title ? ` <em class="seat-title">${who.title}</em>` : ""}</span>
             <span class="result-sub">${s.won} ${s.won === 1 ? "lot" : "lots"} won</span>
@@ -382,7 +429,7 @@ function updateMarks(): void {
     return;
   }
   const view = lobby;
-  marks.innerHTML = Array.from({ length: LOTS_PER_GAME }, (_, i) => {
+  marks.innerHTML = Array.from({ length: view.settings.lots }, (_, i) => {
     const result = view.results[i];
     if (!result)
       return `<span class="mark ${i === view.lot?.index ? "current" : ""}"></span>`;
@@ -438,6 +485,15 @@ function attachWaiting(): void {
   document
     .getElementById("start")
     ?.addEventListener("click", () => send({ type: "start" }));
+  const lots = document.getElementById("lots") as HTMLSelectElement | null;
+  const rivals = document.getElementById("rivals") as HTMLSelectElement | null;
+  const changed = () =>
+    send({
+      type: "settings",
+      settings: { lots: Number(lots!.value), rivals: Number(rivals!.value) },
+    });
+  lots?.addEventListener("change", changed);
+  rivals?.addEventListener("change", changed);
   attachLeave();
 }
 

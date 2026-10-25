@@ -507,15 +507,16 @@ code {
   display: flex;
 }
 
-.room-faces .face {
-  width: 32px;
-  height: 32px;
-  font-size: 0.62rem;
+.room-faces .avatar {
+  --size: 34px;
+}
+
+.room-faces .av-frame {
   box-shadow: 0 0 0 3px var(--panel);
 }
 
-.room-faces .face + .face {
-  margin-left: -4px;
+.room-faces .avatar + .avatar {
+  margin-left: -6px;
 }
 
 .bidder-cards li.is-here {
@@ -626,11 +627,13 @@ code {
 
 .room {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  max-width: 380px;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 14px 6px;
+  max-width: 400px;
   width: 100%;
   margin: 0 auto;
+  /* Room above for speech bubbles. */
+  padding-top: 24px;
 }
 
 .bidder {
@@ -643,13 +646,7 @@ code {
   transition: opacity 0.3s;
 }
 
-.bidder .face {
-  transition:
-    box-shadow 0.3s,
-    transform 0.3s;
-}
-
-.bidder.leading .face {
+.bidder.leading .av-frame {
   box-shadow:
     0 0 0 3px var(--bg),
     0 0 0 5px var(--gold);
@@ -660,21 +657,11 @@ code {
 }
 
 .bidder.out {
-  opacity: 0.32;
+  opacity: 0.55;
 }
 
 .bidder.out .bidder-name {
   text-decoration: line-through;
-}
-
-.bidder.speaking .face {
-  animation: nudge 0.45s ease-out;
-}
-
-@keyframes nudge {
-  40% {
-    transform: translateY(-5px);
-  }
 }
 
 .board {
@@ -1008,10 +995,8 @@ code {
   border-radius: 4px;
 }
 
-.result-lots .face {
-  width: 34px;
-  height: 34px;
-  font-size: 0.66rem;
+.result-lots .avatar {
+  --size: 38px;
 }
 
 .result-points.muted {
@@ -1239,7 +1224,7 @@ html[data-transition="turn"]::view-transition-new(puzzle-card) {
 }
 
 /* Whose turn it is at a private table: a slowly pulsing gold ring. */
-.bidder.turn .face {
+.bidder.turn .av-frame {
   animation: your-go 1.4s ease-in-out infinite;
 }
 
@@ -1304,5 +1289,242 @@ html[data-transition="turn"]::view-transition-new(puzzle-card) {
     flex-direction: column;
     align-items: stretch;
     text-align: left;
+  }
+}
+
+/* ---------- Avatars ---------- */
+
+.avatar {
+  --size: 58px;
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: var(--size);
+  height: var(--size);
+}
+
+.av-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--c) 16%, var(--panel));
+  border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent);
+  border-radius: 50%;
+  transition:
+    box-shadow 0.3s,
+    transform 0.3s,
+    filter 0.3s;
+}
+
+.av-frame svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.av-bubble {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% - 2px);
+  left: 50%;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--gold-ink);
+  background: var(--text);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  animation: bubble-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.av-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: var(--bubble, var(--text));
+}
+
+.mood-cheer .av-bubble {
+  --bubble: var(--gold-bright);
+  background: var(--gold-bright);
+}
+
+.mood-boo .av-bubble {
+  --bubble: #c8605f;
+  color: #fff;
+  background: #c8605f;
+}
+
+.mood-thinking .av-bubble {
+  --bubble: var(--text-soft);
+  color: var(--gold-ink);
+  background: var(--text-soft);
+}
+
+@keyframes bubble-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.4);
+  }
+}
+
+/* The bidding paddle pops up beside whoever just bid. */
+.av-paddle {
+  position: absolute;
+  top: -4px;
+  right: -7px;
+  width: 17px;
+  height: 17px;
+  background: var(--c);
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  animation: paddle-up 0.5s ease-out both;
+}
+
+.av-paddle::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 3px;
+  height: 12px;
+  margin-left: -1.5px;
+  background: #8a6a45;
+  border-radius: 2px;
+}
+
+@keyframes paddle-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-25deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-3px) rotate(8deg);
+  }
+}
+
+.mood-bid .av-frame {
+  animation: hop 0.45s ease-out;
+}
+
+.mood-cheer .av-frame {
+  animation: cheer 0.6s ease-in-out 3;
+}
+
+.mood-boo .av-frame {
+  animation: boo 0.45s ease-in-out 3;
+}
+
+.mood-sheepish .av-frame {
+  animation: sink 0.6s ease-out both;
+}
+
+.mood-thinking .av-frame {
+  animation: sway 1.6s ease-in-out infinite;
+}
+
+.mood-out .av-frame {
+  filter: grayscale(0.6);
+}
+
+@keyframes hop {
+  40% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cheer {
+  30% {
+    transform: translateY(-7px) rotate(-5deg);
+  }
+  60% {
+    transform: translateY(0) rotate(5deg);
+  }
+}
+
+@keyframes boo {
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes sink {
+  to {
+    transform: translateY(3px) scale(0.94);
+  }
+}
+
+@keyframes sway {
+  50% {
+    transform: rotate(-5deg);
+  }
+}
+
+.seat-list .avatar {
+  --size: 44px;
+}
+
+.bidder-cards .avatar {
+  --size: 54px;
+}
+
+/* A short fun fact under the reveal: small, quiet, out of the way. */
+.fun-fact {
+  margin: 10px auto 0 !important;
+  max-width: 34em;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+.fun-fact span {
+  margin-right: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05em;
+  color: var(--gold);
+}
+
+.settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field select {
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  outline: none;
+}
+
+.field select:focus {
+  border-color: var(--gold);
+}
+
+.settings-note {
+  margin: 0;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+@media (max-width: 420px) {
+  .room {
+    grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+  }
+  .room .avatar {
+    --size: 48px;
   }
 }

@@ -19,11 +19,6 @@ export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-/** A bidder's paddle: their initials in a coloured ring. */
-export function faceHtml(initials: string, colour: string): string {
-  return `<span class="face" style="--c: ${colour}">${escapeHtml(initials)}</span>`;
-}
-
 /** One line of the bidding feed. `nameOf` must return HTML-safe names. */
 export function eventHtml(
   event: AuctionEvent | TableEvent,
@@ -80,8 +75,10 @@ export function soldHtml(sale: {
   price: number;
   worth: number;
   points: number;
+  /** A fun fact about the lot, shown small under the reveal. */
+  fact?: string;
 }): string {
-  const { buyer, yours, price, worth, points } = sale;
+  const { buyer, yours, price, worth, points, fact } = sale;
   const percent = Math.round(Math.abs(1 - price / worth) * 100);
   let verdict: string;
   if (yours) {
@@ -113,6 +110,7 @@ export function soldHtml(sale: {
     <div class="worth">
       <p><span class="label">It was really worth</span> <strong>${formatPrice(worth)}</strong></p>
       <p class="verdict">${verdict}${yours ? ` <span class="points ${points < 0 ? "minus" : ""}">${formatPoints(points)}</span>` : ""}</p>
+      ${fact ? `<p class="fun-fact"><span>Did you know?</span>${fact}</p>` : ""}
     </div>`;
 }
 

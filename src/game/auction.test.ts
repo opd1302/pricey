@@ -19,6 +19,7 @@ const ITEM: Item = {
   detail: "",
   category: "Tech",
   price: 89.99,
+  fact: "",
 };
 
 /** Keeps bidding the asking price until `max`, then drops out. */

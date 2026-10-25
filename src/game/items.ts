@@ -6,6 +6,8 @@ export interface Item {
   category: string;
   /** In US dollars. */
   price: number;
+  /** A short fun fact, shown only after the lot sells (some would give the price away). */
+  fact: string;
 }
 
 // Prices are in US dollars. Most are historical (launch prices, famous sales)
@@ -19,6 +21,7 @@ export const ITEMS: Item[] = [
     detail: "Costco food court, US",
     category: "Everyday",
     price: 1.5,
+    fact: "The price hasn't changed since 1985. Costco's co-founder reportedly told a later CEO: \"If you raise the hot dog, I will kill you.\"",
   },
   {
     id: "costco-chicken",
@@ -26,6 +29,7 @@ export const ITEMS: Item[] = [
     detail: "Costco, US",
     category: "Everyday",
     price: 4.99,
+    fact: "Costco sells over 100 million of these a year and has kept the price at $4.99 since 2009, even though it reportedly loses money on them.",
   },
   {
     id: "costco-membership",
@@ -33,6 +37,7 @@ export const ITEMS: Item[] = [
     detail: "US price from September 2024",
     category: "Everyday",
     price: 65,
+    fact: "Membership fees, not groceries, make up most of Costco's profit.",
   },
   {
     id: "arizona-tea",
@@ -40,6 +45,7 @@ export const ITEMS: Item[] = [
     detail: "Price printed on the can, US",
     category: "Everyday",
     price: 0.99,
+    fact: "AriZona has kept 99¢ printed on its big cans since the 1990s, through decades of inflation.",
   },
   {
     id: "forever-stamp",
@@ -47,6 +53,7 @@ export const ITEMS: Item[] = [
     detail: "First-class postage, from July 2025",
     category: "Everyday",
     price: 0.78,
+    fact: "Forever stamps, introduced in 2007, keep working for a first-class letter however much postage rises later.",
   },
   {
     id: "big-mac",
@@ -54,6 +61,7 @@ export const ITEMS: Item[] = [
     detail: "Average US price, January 2025",
     category: "Everyday",
     price: 5.79,
+    fact: "The Economist compares Big Mac prices around the world to judge currencies. It's called the Big Mac Index, started in 1986.",
   },
   {
     id: "netflix",
@@ -61,6 +69,7 @@ export const ITEMS: Item[] = [
     detail: "US price from January 2025",
     category: "Everyday",
     price: 17.99,
+    fact: "Netflix started in 1997 by mailing DVDs. Streaming only arrived in 2007.",
   },
   {
     id: "amazon-prime",
@@ -68,6 +77,7 @@ export const ITEMS: Item[] = [
     detail: "US price from 2022",
     category: "Everyday",
     price: 139,
+    fact: "Prime launched in 2005 at $79 a year, mainly for free two-day shipping.",
   },
   {
     id: "nyc-subway",
@@ -75,6 +85,7 @@ export const ITEMS: Item[] = [
     detail: "Standard fare from January 2025",
     category: "Everyday",
     price: 2.9,
+    fact: "When the New York subway opened in 1904, a ride cost 5 cents.",
   },
 
   // Tech
@@ -84,6 +95,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 1989",
     category: "Tech",
     price: 89.99,
+    fact: "In North America it came with Tetris. Together with the Game Boy Color it sold over 118 million units.",
   },
   {
     id: "ipod",
@@ -91,6 +103,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 2001",
     category: "Tech",
     price: 399,
+    fact: 'Apple\'s pitch for the first iPod was "1,000 songs in your pocket".',
   },
   {
     id: "macintosh",
@@ -98,6 +111,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 1984",
     category: "Tech",
     price: 2495,
+    fact: 'The Macintosh was announced with the famous "1984" Super Bowl ad, directed by Ridley Scott.',
   },
   {
     id: "apple-1",
@@ -105,6 +119,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 1976",
     category: "Tech",
     price: 666.66,
+    fact: "Steve Wozniak built the Apple I by hand. Surviving ones have sold at auction for over $400,000.",
   },
   {
     id: "vision-pro",
@@ -112,6 +127,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 2024",
     category: "Tech",
     price: 3499,
+    fact: "Vision Pro shows a picture of your eyes on its outside screen so people can tell when you're looking at them. Apple calls it EyeSight.",
   },
   {
     id: "playstation",
@@ -119,6 +135,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 1995",
     category: "Tech",
     price: 299,
+    fact: 'At E3 1995, Sony\'s whole pricing talk was a single word, "$299", undercutting the Sega Saturn by $100.',
   },
   {
     id: "playstation-2",
@@ -126,6 +143,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 2000",
     category: "Tech",
     price: 299,
+    fact: "The PlayStation 2 is the best-selling games console ever, with over 155 million sold.",
   },
   {
     id: "sega-saturn",
@@ -133,6 +151,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 1995",
     category: "Tech",
     price: 399,
+    fact: "Sega surprise-launched the Saturn in the US months early, in May 1995, catching many shops unprepared.",
   },
   {
     id: "nintendo-64",
@@ -140,6 +159,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 1996",
     category: "Tech",
     price: 199.99,
+    fact: "The Nintendo 64 still used cartridges, while its rivals had switched to CDs.",
   },
   {
     id: "switch-2",
@@ -147,6 +167,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 2025",
     category: "Tech",
     price: 449.99,
+    fact: "The Switch 2's Joy-Con controllers attach with magnets instead of sliding rails.",
   },
   {
     id: "iphone",
@@ -154,6 +175,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 2007",
     category: "Tech",
     price: 499,
+    fact: "The original iPhone had no App Store. That arrived a year later, in 2008.",
   },
   {
     id: "dynatac",
@@ -161,6 +183,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 1983",
     category: "Tech",
     price: 3995,
+    fact: "It took around 10 hours to charge and gave about 30 minutes of talk time.",
   },
   {
     id: "commodore-64",
@@ -168,6 +191,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 1982",
     category: "Tech",
     price: 595,
+    fact: "The Commodore 64 is often called the best-selling single computer model of all time.",
   },
   {
     id: "raspberry-pi-5",
@@ -175,6 +199,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 2023",
     category: "Tech",
     price: 60,
+    fact: "The Raspberry Pi was made to help children learn to program, by a UK educational charity.",
   },
   {
     id: "xbox",
@@ -182,6 +207,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 2001",
     category: "Tech",
     price: 299,
+    fact: "Microsoft lost money on every original Xbox it sold, betting on game sales to make up for it.",
   },
   {
     id: "steam-deck-oled",
@@ -189,6 +215,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 2023",
     category: "Tech",
     price: 549,
+    fact: "The Steam Deck runs a version of Linux, yet plays most Windows games thanks to a compatibility layer called Proton.",
   },
   {
     id: "airpods-pro",
@@ -196,6 +223,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 2019",
     category: "Tech",
     price: 249,
+    fact: "The first AirPods Pro were the first AirPods with active noise cancellation.",
   },
   {
     id: "lego-falcon",
@@ -203,6 +231,7 @@ export const ITEMS: Item[] = [
     detail: "US launch price, 2017",
     category: "Tech",
     price: 799.99,
+    fact: "The set has 7,541 pieces.",
   },
 
   // History
@@ -212,6 +241,7 @@ export const ITEMS: Item[] = [
     detail: "Launch price, 1908",
     category: "History",
     price: 850,
+    fact: "Mass production later cut the Model T's price to about $260, by 1925.",
   },
   {
     id: "louisiana",
@@ -219,6 +249,7 @@ export const ITEMS: Item[] = [
     detail: "Paid by the US to France, 1803",
     category: "History",
     price: 15_000_000,
+    fact: "It roughly doubled the size of the United States, at under 3 cents an acre.",
   },
   {
     id: "alaska",
@@ -226,6 +257,7 @@ export const ITEMS: Item[] = [
     detail: "Paid by the US to Russia, 1867",
     category: "History",
     price: 7_200_000,
+    fact: 'Critics mocked it as "Seward\'s Folly". It worked out at about 2 cents an acre.',
   },
   {
     id: "babe-ruth",
@@ -233,6 +265,7 @@ export const ITEMS: Item[] = [
     detail: "Paid by the Yankees to the Red Sox for him, 1920",
     category: "History",
     price: 100_000,
+    fact: "Boston didn't win another World Series for 86 years: the so-called Curse of the Bambino.",
   },
   {
     id: "disneyland-1955",
@@ -240,6 +273,7 @@ export const ITEMS: Item[] = [
     detail: "Opening year, 1955 (rides cost extra)",
     category: "History",
     price: 1,
+    fact: 'Opening day went so badly, with fake tickets and soft asphalt, that staff nicknamed it "Black Sunday".',
   },
   {
     id: "coca-cola",
@@ -247,6 +281,7 @@ export const ITEMS: Item[] = [
     detail: "Its fixed price from 1886 to 1959",
     category: "History",
     price: 0.05,
+    fact: "The price stayed at a nickel for about 70 years, partly because vending machines only took a single coin.",
   },
   {
     id: "mcdonalds-1955",
@@ -254,6 +289,7 @@ export const ITEMS: Item[] = [
     detail: "Price in 1955",
     category: "History",
     price: 0.15,
+    fact: "Ray Kroc opened his first McDonald's franchise in Des Plaines, Illinois, in 1955.",
   },
   {
     id: "woodstock",
@@ -261,6 +297,7 @@ export const ITEMS: Item[] = [
     detail: "Three-day ticket bought in advance, 1969",
     category: "History",
     price: 18,
+    fact: "So many people turned up that the fences came down and it became a free festival.",
   },
   {
     id: "golden-gate",
@@ -268,6 +305,7 @@ export const ITEMS: Item[] = [
     detail: "Construction cost, opened 1937",
     category: "History",
     price: 35_000_000,
+    fact: "The bridge's colour is officially called International Orange.",
   },
 
   // Big money
@@ -277,6 +315,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2017",
     category: "Big money",
     price: 450_300_000,
+    fact: "It sold for just £45 in 1958, when experts thought it was only a copy.",
   },
   {
     id: "mantle-card",
@@ -284,6 +323,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2022",
     category: "Big money",
     price: 12_600_000,
+    fact: "Topps is said to have dumped boxes of unsold 1952 cards into the Atlantic, which helps explain why they're rare.",
   },
   {
     id: "jordan-jersey",
@@ -291,6 +331,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2022",
     category: "Big money",
     price: 10_100_000,
+    fact: 'Jordan wore it in Game 1 of the 1998 Finals, during his "Last Dance" season with the Bulls.',
   },
   {
     id: "double-eagle",
@@ -298,6 +339,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2021",
     category: "Big money",
     price: 18_900_000,
+    fact: "Nearly all 1933 Double Eagles were melted down. This is the only one that's legal to own privately.",
   },
   {
     id: "comedian-banana",
@@ -305,6 +347,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2024",
     category: "Big money",
     price: 6_240_000,
+    fact: "The buyer ate the banana a few days after the auction.",
   },
   {
     id: "trex-sue",
@@ -312,6 +355,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 1997",
     category: "Big money",
     price: 8_360_000,
+    fact: "Sue is one of the largest and most complete T. rex skeletons ever found. She lives at Chicago's Field Museum.",
   },
   {
     id: "stegosaurus",
@@ -319,6 +363,7 @@ export const ITEMS: Item[] = [
     detail: "Auction price, 2024",
     category: "Big money",
     price: 44_600_000,
+    fact: "The buyer, billionaire Ken Griffin, lent it to the American Museum of Natural History.",
   },
   {
     id: "twitter",
@@ -326,6 +371,7 @@ export const ITEMS: Item[] = [
     detail: "Bought by Elon Musk, 2022",
     category: "Big money",
     price: 44_000_000_000,
+    fact: "After buying it, Elon Musk renamed Twitter to X in 2023.",
   },
   {
     id: "instagram",
@@ -333,6 +379,7 @@ export const ITEMS: Item[] = [
     detail: "Bought by Facebook, 2012",
     category: "Big money",
     price: 1_000_000_000,
+    fact: "Instagram had just 13 employees when Facebook bought it.",
   },
   {
     id: "whatsapp",
@@ -340,6 +387,7 @@ export const ITEMS: Item[] = [
     detail: "Bought by Facebook, 2014",
     category: "Big money",
     price: 19_000_000_000,
+    fact: "Co-founder Brian Acton was once turned down for a job at Facebook, the company that later bought his.",
   },
   {
     id: "minecraft",
@@ -347,6 +395,7 @@ export const ITEMS: Item[] = [
     detail: "Bought by Microsoft, 2014",
     category: "Big money",
     price: 2_500_000_000,
+    fact: "Minecraft is the best-selling video game of all time, with over 300 million copies sold.",
   },
   {
     id: "super-bowl-ad",
@@ -354,6 +403,7 @@ export const ITEMS: Item[] = [
     detail: "Super Bowl LIX, 2025 (approx.)",
     category: "Big money",
     price: 8_000_000,
+    fact: "A 30-second ad during the first Super Bowl, in 1967, cost around $40,000.",
   },
   {
     id: "jwst",
@@ -361,6 +411,7 @@ export const ITEMS: Item[] = [
     detail: "Total cost to build and launch (approx.)",
     category: "Big money",
     price: 10_000_000_000,
+    fact: "Its main mirror is coated in a very thin layer of gold.",
   },
   {
     id: "burj-khalifa",
@@ -368,5 +419,6 @@ export const ITEMS: Item[] = [
     detail: "Construction cost, completed 2010 (approx.)",
     category: "Big money",
     price: 1_500_000_000,
+    fact: "At 828 metres it has been the world's tallest building since 2010.",
   },
 ];

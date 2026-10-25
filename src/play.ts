@@ -15,13 +15,14 @@ import { formatPoints, ordinal } from "./game/scoring";
 import { shareText } from "./game/share";
 import { currentStreak, recordGame } from "./game/stats";
 import { loadActions, loadStats, saveActions, saveStats } from "./storage";
+import { attachTurnControls, eventHtml, soldHtml, yourTurnHtml } from "./ui";
 import {
-  attachTurnControls,
-  eventHtml,
-  faceHtml,
-  soldHtml,
-  yourTurnHtml,
-} from "./ui";
+  avatarHtml,
+  botLook,
+  personLook,
+  roomMoods,
+  type Look,
+} from "./avatars";
 
 const puzzle = puzzleNumber();
 const items = itemsForPuzzle(puzzle);
@@ -52,11 +53,14 @@ function nameOf(who: BidderId): string {
   return who === "you" ? "You" : BOT_BY_ID[who].firstName;
 }
 
-function bidderFace(who: BidderId): string {
-  return who === "you"
-    ? faceHtml("You", "var(--gold)")
-    : faceHtml(BOT_BY_ID[who].initials, BOT_BY_ID[who].colour);
+const YOUR_LOOK = personLook("You", "#d9b45f");
+
+function lookOf(who: BidderId): Look {
+  return who === "you" ? YOUR_LOOK : botLook(who, BOT_BY_ID[who].colour);
 }
+
+/** The room's last HTML, so it's only redrawn when something changes (keeps avatar animations smooth). */
+let roomHtml = "";
 
 // ---------- What the screen shows ----------
 
@@ -76,12 +80,7 @@ function viewAt(lot: Lot, count: number) {
       sold = event;
     }
   }
-  const latest = lot.events[count - 1];
-  const speaking =
-    latest && (latest.kind === "bid" || latest.kind === "out")
-      ? latest.who
-      : null;
-  return { price, leader, out, sold, speaking };
+  return { price, leader, out, sold };
 }
 
 function render(): void {
@@ -113,6 +112,7 @@ function render(): void {
       <div class="board" id="board"></div>
       <ol class="feed" id="feed" aria-live="polite"></ol>
       <div class="controls" id="controls"></div>`;
+    roomHtml = ""; // the card is new, so its room is empty
     updateLot();
   }
   updateMarks();
@@ -125,17 +125,28 @@ function updateLot(): void {
   const view = viewAt(lot, shown);
 
   const bidders: BidderId[] = [...lot.room.map((bot) => bot.id), "you"];
-  document.getElementById("room")!.innerHTML = bidders
+  const latest = lot.events[shown - 1];
+  const moods = roomMoods({
+    bidders,
+    out: view.out,
+    justBid: latest?.kind === "bid" ? latest.who : null,
+    turn: null,
+    sold: view.sold ? { who: view.sold.who, points: lotPoints(lot) } : null,
+  });
+  const html = bidders
     .map((who) => {
       const classes = [
         "bidder",
-        view.leader === who ? "leading" : "",
+        view.leader === who && !view.sold ? "leading" : "",
         view.out.has(who) ? "out" : "",
-        view.speaking === who ? "speaking" : "",
       ].join(" ");
-      return `<div class="${classes}">${bidderFace(who)}<span class="bidder-name">${nameOf(who)}</span></div>`;
+      return `<div class="${classes}">${avatarHtml(lookOf(who), moods[who])}<span class="bidder-name">${nameOf(who)}</span></div>`;
     })
     .join("");
+  if (html !== roomHtml) {
+    roomHtml = html;
+    document.getElementById("room")!.innerHTML = html;
+  }
 
   const board = document.getElementById("board")!;
   if (view.sold) {
@@ -145,6 +156,7 @@ function updateLot(): void {
       price: view.sold.price,
       worth: lot.item.price,
       points: lotPoints(lot),
+      fact: lot.item.fact,
     });
   } else {
     const label =
@@ -221,7 +233,7 @@ function resultsHtml(): string {
       (s, i) => `
       <li class="${s.who === "you" ? "is-you" : ""}" style="--i: ${i}">
         <span class="lot-no">${i + 1}</span>
-        ${bidderFace(s.who)}
+        ${avatarHtml(lookOf(s.who), "idle", { bubble: false })}
         <span class="result-main">
           <span class="result-name">${s.who === "you" ? "You" : BOT_BY_ID[s.who].name}</span>
           <span class="result-sub">${s.won} ${s.won === 1 ? "lot" : "lots"} won</span>

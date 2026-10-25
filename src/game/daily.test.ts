@@ -60,4 +60,11 @@ describe("ITEMS", () => {
     expect(new Set(ITEMS.map((item) => item.id)).size).toBe(ITEMS.length);
     expect(ITEMS.every((item) => item.price > 0)).toBe(true);
   });
+
+  it("gives every item a short fun fact", () => {
+    for (const item of ITEMS) {
+      expect(item.fact.length, item.id).toBeGreaterThan(10);
+      expect(item.fact.length, item.id).toBeLessThanOrEqual(160);
+    }
+  });
 });

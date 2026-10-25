@@ -94,6 +94,9 @@ wss.on("connection", (socket) => {
       }
       if (!lobby || !playerId) throw new GameError("Join a game first.");
       switch (message.type) {
+        case "settings":
+          lobby.changeSettings(playerId, message.settings);
+          break;
         case "start":
         case "playAgain":
           lobby.start(playerId);

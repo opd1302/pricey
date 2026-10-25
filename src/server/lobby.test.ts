@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { LobbyView, ServerMessage } from "../multiplayer/protocol";
+import {
+  MAX_SEATS,
+  TURN_SECONDS,
+  type LobbyView,
+  type ServerMessage,
+} from "../multiplayer/protocol";
 import { AWAY_TURN_MS, BOT_PAUSE_MS, Lobby, REVEAL_MS } from "./lobby";
 
 /** A fake browser connection that records everything the server sends it. */
@@ -53,12 +58,41 @@ describe("Lobby", () => {
     expect(() => lobby.start(benId)).toThrow("Only the host");
   });
 
-  it("fills the empty seats with rivals", () => {
+  it("seats as many rivals as the host chose", () => {
     const { lobby, ana, anaId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 3, rivals: 4 });
     lobby.start(anaId);
     const seats = ana.view().seats;
-    expect(seats).toHaveLength(4);
-    expect(seats.filter((s) => s.isBot)).toHaveLength(2);
+    expect(seats).toHaveLength(6);
+    expect(seats.filter((s) => s.isBot)).toHaveLength(4);
+  });
+
+  it("can play with no rivals at all", () => {
+    const { lobby, ana, anaId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 3, rivals: 0 });
+    lobby.start(anaId);
+    expect(ana.view().seats.every((s) => !s.isBot)).toBe(true);
+  });
+
+  it("only lets the host change settings, and only to allowed values", () => {
+    const { lobby, anaId, benId } = twoPlayers();
+    expect(() => lobby.changeSettings(benId, { lots: 3, rivals: 1 })).toThrow(
+      "Only the host",
+    );
+    expect(() => lobby.changeSettings(anaId, { lots: 7, rivals: 1 })).toThrow(
+      "lot options",
+    );
+    expect(() => lobby.changeSettings(anaId, { lots: 5, rivals: 6 })).toThrow(
+      "up to 5 rivals",
+    );
+  });
+
+  it("seats up to eight people, with fewer rival seats as it fills", () => {
+    const { lobby, ana, anaId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 5, rivals: 5 });
+    for (let i = 3; i <= MAX_SEATS; i++) lobby.join(`Player ${i}`, () => {});
+    expect(ana.view().settings.rivals).toBe(0);
+    expect(() => lobby.join("One too many", () => {})).toThrow("full");
   });
 
   it("keeps the real price secret until the lot is sold", () => {
@@ -80,7 +114,7 @@ describe("Lobby", () => {
     lobby.start(anaId);
     untilPersonTurn(ana);
     const who = ana.view().lot!.turn!;
-    vi.advanceTimersByTime(30_000);
+    vi.advanceTimersByTime(TURN_SECONDS * 1000);
     const out = ana
       .view()
       .lot!.events.find((e) => e.kind === "out" && e.who === who);
@@ -110,8 +144,8 @@ describe("Lobby", () => {
     }
     const end = ana.view();
     expect(end.phase).toBe("finished");
-    expect(end.results).toHaveLength(5);
-    expect(end.standings).toHaveLength(4);
+    expect(end.results).toHaveLength(end.settings.lots);
+    expect(end.standings).toHaveLength(end.seats.length);
   });
 
   it("lets someone back in with their secret after a refresh", () => {

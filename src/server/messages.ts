@@ -24,6 +24,17 @@ export function parseClientMessage(text: string): ClientMessage {
         playerId: text_(m.playerId),
         secret: text_(m.secret),
       };
+    case "settings": {
+      const s = m.settings as Record<string, unknown> | null;
+      if (
+        typeof s !== "object" ||
+        s === null ||
+        typeof s.lots !== "number" ||
+        typeof s.rivals !== "number"
+      )
+        throw new GameError("Bad message.");
+      return { type: "settings", settings: { lots: s.lots, rivals: s.rivals } };
+    }
     case "bid":
       if (typeof m.amount !== "number") throw new GameError("Bad message.");
       return { type: "bid", amount: m.amount };
