@@ -106,10 +106,13 @@ export function outcomeOn(lot: Lot, who: BidderId): Outcome {
 }
 
 /** Everyone's total for the day, best first. You're listed above bots you tie with. */
-export function standings(lots: Lot[]): Standing[] {
+export function standings(
+  lots: Lot[],
+  room: Bot[] = lots[0]?.room ?? [],
+): Standing[] {
   const table: Standing[] = [
     { who: "you", score: 0, won: 0 },
-    ...(lots[0]?.room ?? []).map((bot) => ({ who: bot.id, score: 0, won: 0 })),
+    ...room.map((bot) => ({ who: bot.id, score: 0, won: 0 })),
   ];
   for (const lot of lots) {
     for (const row of table) {

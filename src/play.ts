@@ -23,7 +23,13 @@ import { formatPoints, ordinal } from "./game/scoring";
 import { shareText } from "./game/share";
 import { currentStreak, recordGame } from "./game/stats";
 import { loadActions, loadStats, saveActions, saveStats } from "./storage";
-import { attachTurnControls, eventHtml, soldHtml, yourTurnHtml } from "./ui";
+import {
+  attachTurnControls,
+  eventHtml,
+  leaderboardHtml,
+  soldHtml,
+  yourTurnHtml,
+} from "./ui";
 import { initSound, mountSoundControls, sfx } from "./sound";
 import {
   avatarHtml,
@@ -125,6 +131,39 @@ function render(): void {
     updateLot();
   }
   updateMarks();
+  updateLeaderboard();
+}
+
+let shownLeaderboard = "";
+let lastScores = new Map<BidderId, number>();
+
+/** The standings so far: lots count once their hammer has fallen on screen. */
+function updateLeaderboard(): void {
+  const board = document.getElementById("leaderboard")!;
+  if (current === null) {
+    board.hidden = true;
+    return;
+  }
+  const now = current;
+  const revealed = day.lots.filter(
+    (lot, i) => i < now || (i === now && viewAt(lot, shown).sold),
+  );
+  const table = standings(revealed, day.room);
+  const html = leaderboardHtml(
+    table.map((s) => ({
+      name: nameOf(s.who),
+      avatar: avatarHtml(lookOf(s.who), "idle", { bubble: false }),
+      score: s.score,
+      you: s.who === "you",
+      changed: lastScores.has(s.who) && lastScores.get(s.who) !== s.score,
+    })),
+  );
+  lastScores = new Map(table.map((s) => [s.who, s.score]));
+  board.hidden = false;
+  if (html !== shownLeaderboard) {
+    shownLeaderboard = html;
+    board.innerHTML = html;
+  }
 }
 
 /** Redraws the parts of the lot that change as bids come in. */
@@ -167,6 +206,13 @@ function updateLot(): void {
       points: lotPoints(lot),
       yourRead: yourRead(lot),
       fact: lot.item.fact,
+      crowd: {
+        name: lot.item.name,
+        yourBid:
+          view.sold.who === "you"
+            ? view.sold.price
+            : highestBidOf(lot.events, "you"),
+      },
     });
   } else {
     const label =
@@ -210,6 +256,7 @@ function updateLot(): void {
     );
   }
   updateMarks();
+  updateLeaderboard();
 }
 
 function updateMarks(): void {

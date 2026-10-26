@@ -15,6 +15,7 @@ import {
   attachTurnControls,
   escapeHtml,
   eventHtml,
+  leaderboardHtml,
   soldHtml,
   yourTurnHtml,
 } from "./ui";
@@ -150,7 +151,39 @@ function render(): void {
     draw(key, "results", resultsHtml(lobby), attachResults);
   }
   updateMarks();
+  updateLeaderboard();
   updateTimers();
+}
+
+let shownLeaderboard = "";
+let lastScores = new Map<string, number>();
+
+/** The rolling standings, shown while a game is being played. */
+function updateLeaderboard(): void {
+  const board = document.getElementById("leaderboard")!;
+  if (!lobby || lobby.phase !== "playing") {
+    board.hidden = true;
+    return;
+  }
+  const view = lobby;
+  const html = leaderboardHtml(
+    view.standings.map((s) => {
+      const seat = view.seats.find((x) => x.id === s.id)!;
+      return {
+        name: s.id === view.you ? "You" : escapeHtml(seat.name),
+        avatar: avatarHtml(lookOf(seat), "idle", { bubble: false }),
+        score: s.score,
+        you: s.id === view.you,
+        changed: lastScores.has(s.id) && lastScores.get(s.id) !== s.score,
+      };
+    }),
+  );
+  lastScores = new Map(view.standings.map((s) => [s.id, s.score]));
+  board.hidden = false;
+  if (html !== shownLeaderboard) {
+    shownLeaderboard = html;
+    board.innerHTML = html;
+  }
 }
 
 function draw(
@@ -310,6 +343,13 @@ function lotHtml(view: LobbyView): string {
       points: lot.sold.points,
       fact: lot.sold.fact,
       yourRead: lot.sold.yourRead,
+      crowd: {
+        name: lot.name,
+        yourBid:
+          lot.sold.who === view.you
+            ? lot.sold.price
+            : (lot.sold.yourRead?.bid ?? null),
+      },
     });
   } else {
     const label =

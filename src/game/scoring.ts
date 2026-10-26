@@ -8,12 +8,15 @@
 // - Everyone else whose highest bid was within 10% of the real price gets
 //   "good read" points, so bidding right up to the price and then dropping
 //   out pays off even when someone else wins.
+// - Both bonuses are a little smaller when you were over the price.
 
 export const MAX_POINTS = 1000;
 export const SPOT_ON_WITHIN = 0.05;
 export const SPOT_ON_BONUS = 250;
 export const GOOD_READ_WITHIN = 0.1;
 export const GOOD_READ_MAX = 200;
+/** Being close but over the real price earns a little less than being close but under it. */
+export const OVER_FACTOR = 0.7;
 
 /** Points for whoever won the lot, having paid `paid` for something worth `value`. */
 export function winnerPoints(value: number, paid: number): number {
@@ -22,7 +25,10 @@ export function winnerPoints(value: number, paid: number): number {
     saved >= 0
       ? Math.round(MAX_POINTS * saved)
       : -Math.min(MAX_POINTS, Math.round(500 * (-saved) ** 1.5));
-  return base + (isSpotOn(value, paid) ? SPOT_ON_BONUS : 0);
+  const bonus = isSpotOn(value, paid)
+    ? Math.round(SPOT_ON_BONUS * (paid > value ? OVER_FACTOR : 1))
+    : 0;
+  return base + bonus;
 }
 
 export function isSpotOn(value: number, paid: number): boolean {
@@ -32,9 +38,12 @@ export function isSpotOn(value: number, paid: number): boolean {
 /** Points for someone who didn't win, based on how close their highest bid came. */
 export function readPoints(value: number, highestBid: number): number {
   const off = Math.abs(highestBid - value) / value;
-  return off <= GOOD_READ_WITHIN
-    ? Math.round(GOOD_READ_MAX * (1 - off / GOOD_READ_WITHIN))
-    : 0;
+  if (off > GOOD_READ_WITHIN) return 0;
+  return Math.round(
+    GOOD_READ_MAX *
+      (1 - off / GOOD_READ_WITHIN) *
+      (highestBid > value ? OVER_FACTOR : 1),
+  );
 }
 
 /** "+1,240", "−300", "0" */

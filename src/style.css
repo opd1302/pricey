@@ -314,12 +314,6 @@ code {
   color: var(--text-soft);
 }
 
-.fine-print {
-  margin: 16px 0 0;
-  font-size: 0.82rem;
-  color: var(--text-faint);
-}
-
 .catalogue {
   margin-top: 72px;
   gap: 4px;
@@ -1584,4 +1578,174 @@ html[data-transition="turn"]::view-transition-new(puzzle-card) {
   .nav-links a[href="../#how"] {
     display: none;
   }
+}
+
+/* ---------- Simulated crowd chart (shown after each lot sells) ---------- */
+
+.crowd {
+  margin: 14px 0 2px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+
+.crowd-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px !important;
+}
+
+.crowd-note {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--text-faint);
+}
+
+.crowd-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.crowd-bars rect {
+  fill: rgb(241 234 220 / 0.16);
+}
+
+.crowd-chart line {
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.crowd-chart line.avg {
+  stroke: var(--text-soft);
+  stroke-dasharray: 4 3;
+}
+
+.crowd-chart line.real {
+  stroke: var(--gold);
+}
+
+.crowd-chart line.you {
+  stroke: #7fc8c2;
+}
+
+.crowd-key {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.crowd-key div {
+  padding-left: 10px;
+  border-left: 3px solid;
+}
+
+.crowd-key .avg {
+  border-left-style: dashed;
+  border-color: var(--text-soft);
+}
+
+.crowd-key .real {
+  border-color: var(--gold);
+}
+
+.crowd-key .you {
+  border-color: #7fc8c2;
+}
+
+.crowd-key dt {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.crowd-key dd {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.crowd-line {
+  margin: 8px 0 0 !important;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+/* ---------- Rolling leaderboard ---------- */
+
+.leaderboard {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+}
+
+.leaderboard[hidden] {
+  display: none;
+}
+
+.lb-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.lb-row .avatar {
+  --size: 24px;
+}
+
+.lb-rank {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--gold);
+}
+
+.lb-score {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.lb-row.is-you .lb-name {
+  color: var(--gold);
+}
+
+.lb-row.bump .lb-score {
+  animation: bump 0.9s ease-out;
+}
+
+@keyframes bump {
+  20% {
+    color: var(--gold-bright);
+    transform: scale(1.25);
+  }
+}
+
+.lb-score {
+  display: inline-block;
 }

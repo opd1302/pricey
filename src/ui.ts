@@ -1,5 +1,6 @@
 // Pieces of the auction screen shared by the daily game and private games.
 import type { AuctionEvent } from "./game/auction";
+import { closerThan, crowdChart, position } from "./game/crowd";
 import { formatPrice } from "./game/money";
 import { formatPoints, isSpotOn } from "./game/scoring";
 import type { TableEvent } from "./game/table";
@@ -83,8 +84,10 @@ export function soldHtml(sale: {
   yourRead?: { bid: number; points: number };
   /** A fun fact about the lot, shown small under the reveal. */
   fact?: string;
+  /** For the simulated crowd chart: the lot's name and your highest bid. */
+  crowd?: { name: string; yourBid: number | null };
 }): string {
-  const { buyer, yours, price, worth, points, yourRead, fact } = sale;
+  const { buyer, yours, price, worth, points, yourRead, fact, crowd } = sale;
   const percentOff = (amount: number) =>
     Math.round(Math.abs(1 - amount / worth) * 100);
   const pointsTag = (p: number) =>
@@ -123,8 +126,85 @@ export function soldHtml(sale: {
     <div class="worth">
       <p><span class="label">It was really worth</span> <strong>${formatPrice(worth)}</strong></p>
       <p class="verdict">${verdict}</p>
+      ${crowd ? crowdHtml(crowd.name, worth, crowd.yourBid) : ""}
       ${fact ? `<p class="fun-fact"><span>Did you know?</span>${fact}</p>` : ""}
     </div>`;
+}
+
+/**
+ * A small bar chart of how a big (simulated) crowd might have bid on the lot,
+ * with lines for the crowd's average, the real price and your bid.
+ */
+export function crowdHtml(
+  name: string,
+  price: number,
+  yourBid: number | null,
+): string {
+  const chart = crowdChart({ name, price });
+  const width = 320;
+  const height = 64;
+  const tallest = Math.max(...chart.bars);
+  const barWidth = width / chart.bars.length;
+  const bars = chart.bars
+    .map((count, i) => {
+      const h = (count / tallest) * (height - 4);
+      return `<rect x="${(i * barWidth + 1).toFixed(1)}" y="${(height - h).toFixed(1)}" width="${(barWidth - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" />`;
+    })
+    .join("");
+  const x = (v: number) =>
+    (
+      Math.min(0.995, Math.max(0.005, position(v, chart.low, chart.high))) *
+      width
+    ).toFixed(1);
+  const line = (v: number, kind: string) =>
+    `<line class="${kind}" x1="${x(v)}" x2="${x(v)}" y1="0" y2="${height}" />`;
+  const beat = yourBid
+    ? Math.round(closerThan({ name, price }, yourBid) * 100)
+    : 0;
+  return `
+    <div class="crowd">
+      <p class="crowd-title"><span class="label">How a big crowd might have bid</span><span class="crowd-note">Simulated</span></p>
+      <svg class="crowd-chart" viewBox="0 0 ${width} ${height}" aria-hidden="true">
+        <g class="crowd-bars">${bars}</g>
+        ${line(chart.average, "avg")}${line(price, "real")}${yourBid ? line(yourBid, "you") : ""}
+      </svg>
+      <dl class="crowd-key">
+        <div class="avg"><dt>Average bid</dt><dd>${formatPrice(Number(chart.average.toPrecision(3)))}</dd></div>
+        <div class="real"><dt>Real price</dt><dd>${formatPrice(price)}</dd></div>
+        <div class="you"><dt>Your bid</dt><dd>${yourBid ? formatPrice(yourBid) : "None"}</dd></div>
+      </dl>
+      ${yourBid ? `<p class="crowd-line">${crowdLine(beat)}</p>` : ""}
+    </div>`;
+}
+
+/** The rolling standings shown above the auction card while a game is on. */
+export function leaderboardHtml(
+  rows: {
+    name: string;
+    avatar: string;
+    score: number;
+    you: boolean;
+    changed: boolean;
+  }[],
+): string {
+  const items = rows
+    .map(
+      (row, i) => `
+        <li class="lb-row ${row.you ? "is-you" : ""} ${row.changed ? "bump" : ""}">
+          <span class="lb-rank">${i + 1}</span>${row.avatar}
+          <span class="lb-name">${row.name}</span>
+          <span class="lb-score">${formatPoints(row.score)}</span>
+        </li>`,
+    )
+    .join("");
+  return `<span class="label">Standings</span><ol class="lb-list">${items}</ol>`;
+}
+
+/** "Your bid was closer than 72% of the crowd", or the other way round if most did better. */
+function crowdLine(beat: number): string {
+  return beat >= 50
+    ? `Your bid was closer to the real price than ${beat}% of the crowd.`
+    : `${100 - beat}% of the crowd got closer to the real price than you.`;
 }
 
 /** Wires up the bid controls from `yourTurnHtml`. */

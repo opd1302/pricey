@@ -29,7 +29,7 @@ describe("winnerPoints", () => {
   it("adds a spot-on bonus within 5% either side", () => {
     expect(winnerPoints(100, 100)).toBe(250);
     expect(winnerPoints(100, 96)).toBe(40 + 250);
-    expect(winnerPoints(100, 105)).toBe(-6 + 250);
+    expect(winnerPoints(100, 105)).toBe(-6 + 175); // smaller bonus when over
     expect(winnerPoints(100, 106)).toBe(-7);
   });
 
@@ -42,7 +42,7 @@ describe("readPoints", () => {
   it("rewards a highest bid close to the real price, either side", () => {
     expect(readPoints(100, 100)).toBe(200);
     expect(readPoints(100, 95)).toBe(100);
-    expect(readPoints(100, 105)).toBe(100);
+    expect(readPoints(100, 105)).toBe(70); // smaller when over
     expect(readPoints(100, 89)).toBe(0);
   });
 });
