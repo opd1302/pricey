@@ -178,6 +178,25 @@ describe("Lobby", () => {
     expect([anaId, benId]).toContain(turn);
   });
 
+  it("doesn't repeat lots when the same table plays again", () => {
+    const { lobby, ana, anaId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 10, rivals: 0 });
+    const seen = new Set<string>();
+    for (let game = 0; game < 5; game++) {
+      lobby.start(anaId);
+      for (let i = 0; i < 2000 && ana.view().phase === "playing"; i++) {
+        const v = ana.view();
+        if (v.lot?.sold) vi.advanceTimersByTime(REVEAL_MS);
+        else lobby.move(v.lot!.turn!, "drop");
+      }
+      for (const r of ana.view().results) {
+        expect(seen.has(r.name)).toBe(false);
+        seen.add(r.name);
+      }
+    }
+    expect(seen.size).toBe(50);
+  });
+
   it("won't let anyone join once the game has started", () => {
     const { lobby, anaId } = twoPlayers();
     lobby.start(anaId);

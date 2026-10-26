@@ -73,6 +73,8 @@ export class Lobby {
   private nextLotAt: number | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private nextId = 1;
+  /** Lots this lobby has already played, so "play again" picks fresh ones. */
+  private usedLots = new Set<string>();
 
   constructor(
     readonly code: string,
@@ -184,7 +186,7 @@ export class Lobby {
 
     this.seed = Math.floor(this.random() * 2 ** 31);
     const random = seededRandom(this.seed);
-    this.items = shuffle(this.pool, random).slice(0, this.settings.lots);
+    this.items = this.pickLots(random);
     const rivals = shuffle(BOTS, random).slice(
       0,
       Math.min(this.settings.rivals, maxRivals(present.length)),
@@ -220,6 +222,18 @@ export class Lobby {
   /** Stops any pending timer. Call when throwing the lobby away. */
   dispose(): void {
     clearTimeout(this.timer);
+  }
+
+  /** Random lots this table hasn't seen yet. Once they've seen nearly all of them, start afresh. */
+  private pickLots(random: () => number): Item[] {
+    let fresh = this.pool.filter((item) => !this.usedLots.has(item.id));
+    if (fresh.length < this.settings.lots) {
+      this.usedLots.clear();
+      fresh = this.pool;
+    }
+    const picked = shuffle(fresh, random).slice(0, this.settings.lots);
+    for (const item of picked) this.usedLots.add(item.id);
+    return picked;
   }
 
   // ---------- Running the game ----------
