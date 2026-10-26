@@ -47,7 +47,7 @@ export const BOTS: Bot[] = [
     eagerness: 1,
     limit(item, random) {
       const offDay = random() < 0.15;
-      return 0.8 * estimate(item, random, 0, offDay ? 0.45 : 0.1);
+      return 0.86 * estimate(item, random, 0, offDay ? 0.45 : 0.1);
     },
     lines: {
       bid: [

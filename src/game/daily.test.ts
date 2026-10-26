@@ -114,8 +114,9 @@ describe("ITEMS", () => {
     expect(ITEMS.length).toBeGreaterThanOrEqual(150);
   });
 
-  it("has unique ids and positive prices", () => {
+  it("has unique ids and names, and positive prices", () => {
     expect(new Set(ITEMS.map((item) => item.id)).size).toBe(ITEMS.length);
+    expect(new Set(ITEMS.map((item) => item.name)).size).toBe(ITEMS.length);
     expect(ITEMS.every((item) => item.price > 0)).toBe(true);
   });
 

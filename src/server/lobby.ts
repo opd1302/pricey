@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { BOTS } from "../game/bots";
 import { ITEMS, type Item } from "../game/items";
+import { highestBidOf } from "../game/scoring";
 import { pick, seededRandom, shuffle } from "../game/random";
 import {
   botMove,
@@ -8,6 +9,8 @@ import {
   seatOf,
   tableAsk,
   tableLotPoints,
+  tableOutcomeOn,
+  tablePointsOn,
   tableMove,
   tableStandings,
   type Seat,
@@ -35,6 +38,8 @@ export const BOT_PAUSE_MS = 1200;
 export const REVEAL_MS = 8000;
 /** A person who has lost connection gets a much shorter turn. */
 export const AWAY_TURN_MS = 3000;
+/** After this many automatic bids in a row on one lot, someone who keeps timing out is dropped. */
+export const MAX_AUTO_BIDS = 2;
 const TURN_MS = TURN_SECONDS * 1000;
 const PEOPLE_COLOURS = [
   "#d9b45f",
@@ -75,6 +80,8 @@ export class Lobby {
   private nextId = 1;
   /** Lots this lobby has already played, so "play again" picks fresh ones. */
   private usedLots = new Set<string>();
+  /** How many times in a row each person has run out of time on this lot. */
+  private autoBidsInARow = new Map<string, number>();
 
   constructor(
     readonly code: string,
@@ -213,8 +220,9 @@ export class Lobby {
       const ask = tableAsk(lot);
       if (!Number.isFinite(action.bid) || action.bid < ask)
         throw new GameError("That bid is below the asking price.");
-      if (action.bid > 1e13) throw new GameError("That's not a sensible bid.");
+      if (action.bid > 1e21) throw new GameError("That's not a sensible bid.");
     }
+    this.autoBidsInARow.delete(byId);
     tableMove(lot, byId, action);
     this.nextTurn();
   }
@@ -240,6 +248,7 @@ export class Lobby {
 
   private openNextLot(): void {
     const index = this.lots.length;
+    this.autoBidsInARow.clear();
     this.lots.push(
       openTableLot(
         this.items[index],
@@ -293,7 +302,17 @@ export class Lobby {
     clearTimeout(this.timer);
     this.turnEndsAt = Date.now() + ms;
     this.timer = setTimeout(() => {
-      tableMove(lot, id, "drop", true);
+      // Out of time: bid the asking price for them. But after a couple of
+      // automatic bids in a row (or if they've left), they're probably away,
+      // so drop them, or two absent players would bid each other up forever.
+      const present = this.people.find((p) => p.id === id)?.connected;
+      const autoBids = this.autoBidsInARow.get(id) ?? 0;
+      if (present && autoBids < MAX_AUTO_BIDS) {
+        this.autoBidsInARow.set(id, autoBids + 1);
+        tableMove(lot, id, { bid: tableAsk(lot) }, true);
+      } else {
+        tableMove(lot, id, "drop", true);
+      }
       this.nextTurn();
     }, ms);
   }
@@ -360,6 +379,7 @@ export class Lobby {
               worth: lot.item.price,
               points: tableLotPoints(lot),
               fact: lot.item.fact,
+              yourRead: this.readFor(lot, forId),
             },
           }
         : null,
@@ -372,9 +392,21 @@ export class Lobby {
           paid: l.sold!.price,
           worth: l.item.price,
           points: tableLotPoints(l),
+          yourPoints: tablePointsOn(l, forId),
+          yourOutcome: tableOutcomeOn(l, forId),
         })),
       standings: tableStandings(this.seats, this.lots),
     };
+  }
+
+  /** Someone's highest bid on a lot they didn't win, and the good-read points it earned. */
+  private readFor(
+    lot: TableLot,
+    id: string,
+  ): { bid: number; points: number } | undefined {
+    const bid = highestBidOf(lot.events, id);
+    if (bid === null || lot.sold?.who === id) return undefined;
+    return { bid, points: tablePointsOn(lot, id) };
   }
 
   private currentLot(): TableLot | undefined {

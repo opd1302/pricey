@@ -1,8 +1,14 @@
-import { roundToTwoFigures, nextBid } from "./auction";
+import { nextBid, openingPrice, roundToTwoFigures } from "./auction";
 import { botBidAmount, botLine, type Bot } from "./bots";
 import type { Item } from "./items";
 import { seedFrom, seededRandom } from "./random";
-import { profitPoints } from "./scoring";
+import {
+  bidderPoints,
+  highestBidOf,
+  outcomeFor,
+  winnerPoints,
+  type Outcome,
+} from "./scoring";
 
 // The rules for one lot at a private table: up to four people, with bots in
 // any empty seats. Unlike the daily game, everyone strictly takes turns round
@@ -21,7 +27,15 @@ export interface Seat {
 
 export type TableEvent =
   | { kind: "open"; price: number }
-  | { kind: "bid"; who: string; amount: number; jump: boolean; line?: string }
+  | {
+      kind: "bid";
+      who: string;
+      amount: number;
+      jump: boolean;
+      line?: string;
+      /** Placed automatically because the person ran out of time. */
+      auto?: boolean;
+    }
   | { kind: "out"; who: string; line?: string; timedOut?: boolean }
   | { kind: "sold"; who: string | null; price: number; line?: string };
 
@@ -60,10 +74,7 @@ export function openTableLot(
         favourite,
       );
   }
-  const opening = roundToTwoFigures(
-    item.price * (0.12 + 0.33 * random()),
-    "down",
-  );
+  const opening = openingPrice(item.price, random);
   return {
     item,
     seats,
@@ -88,7 +99,10 @@ export function seatOf(lot: TableLot, id: string): Seat | undefined {
   return lot.seats.find((s) => s.id === id);
 }
 
-/** Applies a move by the seat whose turn it is. Throws if it isn't allowed. */
+/**
+ * Applies a move by the seat whose turn it is. Throws if it isn't allowed.
+ * `timedOut` marks a move made for someone who ran out of time.
+ */
 export function tableMove(
   lot: TableLot,
   who: string,
@@ -117,6 +131,7 @@ export function tableMove(
       amount: action.bid,
       jump,
       line: bot && botLine(bot, jump ? "jump" : "bid", lot.random),
+      ...(timedOut ? { auto: true } : {}),
     });
   }
   advance(lot);
@@ -163,9 +178,29 @@ function advance(lot: TableLot): void {
   }
 }
 
+/** Points earned on one lot by whoever won it. */
 export function tableLotPoints(lot: TableLot): number {
   if (!lot.sold?.who) return 0;
-  return profitPoints(lot.item.price, lot.sold.price);
+  return winnerPoints(lot.item.price, lot.sold.price);
+}
+
+/** Points one seat earned on a lot, whether or not they won it. */
+export function tablePointsOn(lot: TableLot, who: string): number {
+  return bidderPoints(
+    lot.item.price,
+    lot.sold,
+    who,
+    highestBidOf(lot.events, who),
+  );
+}
+
+export function tableOutcomeOn(lot: TableLot, who: string): Outcome {
+  return outcomeFor(
+    lot.item.price,
+    lot.sold,
+    who,
+    highestBidOf(lot.events, who),
+  );
 }
 
 /** Everyone's total so far, best first. */
@@ -175,10 +210,10 @@ export function tableStandings(
 ): { id: string; score: number; won: number }[] {
   const table = seats.map((s) => ({ id: s.id, score: 0, won: 0 }));
   for (const lot of lots) {
-    const row = table.find((r) => r.id === lot.sold?.who);
-    if (!row) continue;
-    row.score += tableLotPoints(lot);
-    row.won += 1;
+    for (const row of table) {
+      row.score += tablePointsOn(lot, row.id);
+      if (lot.sold?.who === row.id) row.won += 1;
+    }
   }
   return table.sort((a, b) => b.score - a.score);
 }

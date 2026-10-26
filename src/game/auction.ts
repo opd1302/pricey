@@ -37,6 +37,9 @@ export interface Lot {
   random: () => number;
 }
 
+const OPENING_LOW = 0.04;
+const OPENING_HIGH = 0.65;
+
 /** How many bot bids happen before your first turn, to get things going. */
 const OPENING_BIDS = 2;
 
@@ -56,12 +59,7 @@ export function openLot(
       favourite,
     );
   }
-  // The opening price is a random fraction of the real price, so it hints at
-  // the size of the number without giving the answer away.
-  const opening = roundToTwoFigures(
-    item.price * (0.12 + 0.33 * random()),
-    "down",
-  );
+  const opening = openingPrice(item.price, random);
   const lot: Lot = {
     item,
     room,
@@ -76,6 +74,16 @@ export function openLot(
   };
   runBots(lot, OPENING_BIDS);
   return lot;
+}
+
+/**
+ * Where bidding opens: anywhere from about 4% to 65% of the real price, more
+ * often low than high. It hints at the size of the number without giving the
+ * answer away.
+ */
+export function openingPrice(value: number, random: () => number): number {
+  const share = OPENING_LOW * (OPENING_HIGH / OPENING_LOW) ** random();
+  return roundToTwoFigures(value * share, "down");
 }
 
 /** The lowest bid that would be accepted right now. */

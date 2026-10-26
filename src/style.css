@@ -172,6 +172,11 @@ code {
   background: #c8605f;
   border-color: #c8605f;
 }
+.mark.read {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.mark.none,
 .mark.passed {
   background: var(--text-faint);
   border-color: var(--text-faint);
@@ -1526,5 +1531,57 @@ html[data-transition="turn"]::view-transition-new(puzzle-card) {
   }
   .room .avatar {
     --size: 48px;
+  }
+}
+
+/* ---------- Sound and music buttons ---------- */
+
+.sound-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.sound-toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--text-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    opacity 0.2s;
+}
+
+.sound-toggle:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.sound-toggle[aria-pressed="false"] {
+  opacity: 0.5;
+}
+
+.sound-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 420px) {
+  .nav-links {
+    gap: 12px;
+  }
+  .nav-links a[href="../#how"] {
+    display: none;
   }
 }

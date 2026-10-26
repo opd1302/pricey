@@ -9,13 +9,22 @@ import {
 } from "./game/auction";
 import { BOT_BY_ID } from "./game/bots";
 import { itemsForPuzzle, msUntilNextPuzzle, puzzleNumber } from "./game/daily";
-import { lotPoints, playDay, standings, yourStanding } from "./game/day";
+import {
+  lotPoints,
+  outcomeOn,
+  playDay,
+  pointsOn,
+  standings,
+  yourStanding,
+} from "./game/day";
+import { highestBidOf } from "./game/scoring";
 import { formatPrice, parsePrice } from "./game/money";
 import { formatPoints, ordinal } from "./game/scoring";
 import { shareText } from "./game/share";
 import { currentStreak, recordGame } from "./game/stats";
 import { loadActions, loadStats, saveActions, saveStats } from "./storage";
 import { attachTurnControls, eventHtml, soldHtml, yourTurnHtml } from "./ui";
+import { initSound, mountSoundControls, sfx } from "./sound";
 import {
   avatarHtml,
   botLook,
@@ -156,6 +165,7 @@ function updateLot(): void {
       price: view.sold.price,
       worth: lot.item.price,
       points: lotPoints(lot),
+      yourRead: yourRead(lot),
       fact: lot.item.fact,
     });
   } else {
@@ -212,8 +222,7 @@ function updateMarks(): void {
         (i === current && viewAt(lot, shown).sold);
       if (!lot || !finished)
         return `<span class="mark ${i === current ? "current" : ""}"></span>`;
-      if (lot.sold?.who !== "you") return `<span class="mark passed"></span>`;
-      return `<span class="mark ${lotPoints(lot) >= 0 ? "profit" : "loss"}"></span>`;
+      return `<span class="mark ${outcomeOn(lot, "you")}"></span>`;
     })
     .join("");
 }
@@ -245,19 +254,18 @@ function resultsHtml(): string {
   const lots = day.lots
     .map((lot, i) => {
       const sold = lot.sold!;
-      const yours = sold.who === "you";
       const buyer = sold.who
         ? `${nameOf(sold.who)} paid ${formatPrice(sold.price)}`
         : "Unsold";
       return `
         <li style="--i: ${i + table.length}">
           <span class="lot-no">${i + 1}</span>
-          <span class="mark ${yours ? (lotPoints(lot) >= 0 ? "profit" : "loss") : "passed"}"></span>
+          <span class="mark ${outcomeOn(lot, "you")}"></span>
           <span class="result-main">
             <span class="result-name">${lot.item.name}</span>
             <span class="result-sub">${buyer} · worth ${formatPrice(lot.item.price)}</span>
           </span>
-          <span class="result-points ${yours ? "" : "muted"}">${yours ? formatPoints(lotPoints(lot)) : "—"}</span>
+          <span class="result-points ${pointsOn(lot, "you") ? "" : "muted"}">${pointsOn(lot, "you") ? formatPoints(pointsOn(lot, "you")) : "—"}</span>
         </li>`;
     })
     .join("");
@@ -334,9 +342,30 @@ async function playEvents(): Promise<void> {
     await sleep(pauseBefore(lot.events[shown], lot));
     shown++;
     updateLot();
+    soundFor(lot.events[shown - 1], lot);
   }
   busy = false;
   updateLot();
+  if (isYourTurn(lot)) sfx.turn();
+}
+
+/** Your highest bid on a lot you didn't win, and the good-read points it earned. */
+function yourRead(lot: Lot): { bid: number; points: number } | undefined {
+  const bid = highestBidOf(lot.events, "you");
+  if (bid === null || lot.sold?.who === "you") return undefined;
+  return { bid, points: pointsOn(lot, "you") };
+}
+
+function soundFor(event: AuctionEvent, lot: Lot): void {
+  if (event.kind === "bid") sfx.bid(event.who === "you");
+  else if (event.kind === "out") sfx.drop();
+  else if (event.kind === "sold") {
+    sfx.gavel();
+    // The room's reaction, just after the gavel.
+    const points = lotPoints(lot);
+    if (event.who && points !== 0)
+      setTimeout(() => (points > 0 ? sfx.cheer() : sfx.boo()), 450);
+  }
 }
 
 function act(action: PlayerAction): void {
@@ -422,6 +451,8 @@ if (current !== null) {
   const resumed = (actions[current] ?? []).length > 0;
   shown = resumed ? day.lots[current].events.length : 0;
 }
+initSound({ music: true });
+mountSoundControls(document.getElementById("sound-controls")!);
 render();
 if (current !== null) void playEvents();
 setInterval(updateCountdown, 1000);

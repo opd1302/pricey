@@ -25,6 +25,7 @@ import {
   roomMoods,
   type Look,
 } from "./avatars";
+import { initSound, mountSoundControls, sfx } from "./sound";
 import type { BotId } from "./game/bots";
 
 // The private game page. The game server runs the auction; this page shows
@@ -99,6 +100,7 @@ function handle(message: ServerMessage): void {
       history.replaceState(null, "", `?code=${message.code}`);
       break;
     case "lobby":
+      playNewSounds(lobby, message.lobby);
       lobby = message.lobby;
       turnDeadline = Date.now() + (lobby.lot?.turnMsLeft ?? 0);
       nextLotDeadline = Date.now() + (lobby.nextLotMsLeft ?? 0);
@@ -307,6 +309,7 @@ function lotHtml(view: LobbyView): string {
       worth: lot.sold.worth,
       points: lot.sold.points,
       fact: lot.sold.fact,
+      yourRead: lot.sold.yourRead,
     });
   } else {
     const label =
@@ -396,12 +399,12 @@ function resultsHtml(view: LobbyView): string {
       return `
         <li style="--i: ${i + view.standings.length}">
           <span class="lot-no">${i + 1}</span>
-          <span class="mark ${yours ? (r.points >= 0 ? "profit" : "loss") : "passed"}"></span>
+          <span class="mark ${r.yourOutcome}"></span>
           <span class="result-main">
             <span class="result-name">${r.name}</span>
             <span class="result-sub">${buyer ? `${buyer} paid ${formatPrice(r.paid)}` : "Unsold"} · worth ${formatPrice(r.worth)}</span>
           </span>
-          <span class="result-points ${yours ? "" : "muted"}">${yours ? formatPoints(r.points) : "—"}</span>
+          <span class="result-points ${r.yourPoints ? "" : "muted"}">${r.yourPoints ? formatPoints(r.yourPoints) : "—"}</span>
         </li>`;
     })
     .join("");
@@ -433,9 +436,34 @@ function updateMarks(): void {
     const result = view.results[i];
     if (!result)
       return `<span class="mark ${i === view.lot?.index ? "current" : ""}"></span>`;
-    if (result.buyer !== view.you) return `<span class="mark passed"></span>`;
-    return `<span class="mark ${result.points >= 0 ? "profit" : "loss"}"></span>`;
+    return `<span class="mark ${result.yourOutcome}"></span>`;
   }).join("");
+}
+
+let lastTick = 0;
+
+/** Plays sounds for whatever happened since the last update from the server. */
+function playNewSounds(before: LobbyView | null, after: LobbyView): void {
+  const lot = after.lot;
+  if (!before || !lot || after.phase !== "playing") return;
+  const sameLot = before.lot?.index === lot.index;
+  const fresh = lot.events.slice(sameLot ? before.lot!.events.length : 0);
+  fresh.forEach((event, i) => {
+    setTimeout(() => {
+      if (event.kind === "bid") sfx.bid(event.who === after.you);
+      else if (event.kind === "out") sfx.drop();
+      else if (event.kind === "sold") {
+        sfx.gavel();
+        const points = lot.sold?.points ?? 0;
+        if (event.who && points !== 0)
+          setTimeout(() => (points > 0 ? sfx.cheer() : sfx.boo()), 450);
+      }
+    }, i * 120);
+  });
+  if (lot.turn === after.you && before.lot?.turn !== after.you) {
+    lastTick = 0;
+    sfx.turn();
+  }
 }
 
 function updateTimers(): void {
@@ -444,7 +472,18 @@ function updateTimers(): void {
   const turn = document.getElementById("turn-timer");
   if (turn) {
     turn.textContent = seconds(turnDeadline);
-    turn.classList.toggle("urgent", turnDeadline - Date.now() < 10_000);
+    turn.classList.toggle("urgent", turnDeadline - Date.now() < 5_000);
+    // A quiet tick each second for the last few seconds of your own turn.
+    const left = Math.ceil((turnDeadline - Date.now()) / 1000);
+    if (
+      lobby?.lot?.turn === lobby?.you &&
+      left <= 5 &&
+      left > 0 &&
+      left !== lastTick
+    ) {
+      lastTick = left;
+      sfx.tick();
+    }
   }
   const next = document.getElementById("next-timer");
   if (next) next.textContent = seconds(nextLotDeadline);
@@ -580,5 +619,7 @@ if (loadSession()) {
 } else {
   render();
 }
+initSound({ music: true });
+mountSoundControls(document.getElementById("sound-controls")!);
 connect();
 setInterval(updateTimers, 250);

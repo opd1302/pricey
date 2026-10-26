@@ -1,11 +1,12 @@
 import type { Lot } from "./auction";
-import { lotPoints, yourStanding } from "./day";
+import { outcomeOn, yourStanding } from "./day";
 import { formatPoints, ordinal } from "./scoring";
 
-/** One square per lot: 🟩 won at a profit, 🟥 won at a loss, ⬜ someone else won it. */
+const SQUARES = { profit: "🟩", loss: "🟥", read: "🟨", none: "⬜" };
+
+/** One square per lot: 🟩 won at a profit, 🟥 won at a loss, 🟨 a good read, ⬜ nothing. */
 export function lotSquare(lot: Lot): string {
-  if (lot.sold?.who !== "you") return "⬜";
-  return lotPoints(lot) >= 0 ? "🟩" : "🟥";
+  return SQUARES[outcomeOn(lot, "you")];
 }
 
 /**

@@ -1,7 +1,7 @@
 import { avatarHtml, botLook } from "./avatars";
 import { BOTS } from "./game/bots";
 import { itemsForPuzzle, puzzleNumber } from "./game/daily";
-import { lotPoints, playDay, yourStanding } from "./game/day";
+import { outcomeOn, playDay, yourStanding } from "./game/day";
 import { formatPrice } from "./game/money";
 import { ordinal } from "./game/scoring";
 import { clearActions, loadActions } from "./storage";
@@ -41,8 +41,7 @@ $("lots").innerHTML = items
         : sold.who
           ? BOTS.find((b) => b.id === sold.who)!.firstName
           : "Unsold";
-    const mark =
-      sold.who === "you" ? (lotPoints(lot) >= 0 ? "profit" : "loss") : "passed";
+    const mark = outcomeOn(lot, "you");
     return `
       <li class="is-sold">
         <span class="lot-no">Lot ${i + 1}</span>

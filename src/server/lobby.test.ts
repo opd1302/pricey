@@ -109,16 +109,48 @@ describe("Lobby", () => {
     }
   });
 
-  it("drops a person who doesn't move within the time limit", () => {
+  it("bids the asking price for someone who runs out of time", () => {
     const { lobby, ana, anaId } = twoPlayers();
     lobby.start(anaId);
     untilPersonTurn(ana);
-    const who = ana.view().lot!.turn!;
+    const { turn, ask } = ana.view().lot!;
     vi.advanceTimersByTime(TURN_SECONDS * 1000);
-    const out = ana
+    const bid = ana
       .view()
-      .lot!.events.find((e) => e.kind === "out" && e.who === who);
-    expect(out).toMatchObject({ timedOut: true });
+      .lot!.events.find((e) => e.kind === "bid" && e.who === turn);
+    expect(bid).toMatchObject({ amount: ask, auto: true });
+    expect(ana.view().lot!.out).not.toContain(turn);
+  });
+
+  it("drops someone after two automatic bids in a row, so absent players can't bid forever", () => {
+    const { lobby, ana, anaId, benId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 3, rivals: 0 });
+    lobby.start(anaId);
+    // Nobody touches anything: the lot must still end.
+    for (let i = 0; i < 10 && !ana.view().lot!.sold; i++)
+      vi.advanceTimersByTime(TURN_SECONDS * 1000);
+    const lot = ana.view().lot!;
+    expect(lot.sold).not.toBeNull();
+    for (const who of [anaId, benId]) {
+      const autoBids = lot.events.filter(
+        (e) => e.kind === "bid" && e.who === who && e.auto,
+      ).length;
+      expect(autoBids).toBeLessThanOrEqual(2);
+    }
+    expect(lot.events.some((e) => e.kind === "out" && e.timedOut)).toBe(true);
+  });
+
+  it("starts counting again after someone bids for themselves", () => {
+    const { lobby, ana, anaId, benId } = twoPlayers();
+    lobby.changeSettings(anaId, { lots: 3, rivals: 0 });
+    lobby.start(anaId);
+    // Ana times out twice, but bids herself in between, so she isn't dropped.
+    const turnOf = () => ana.view().lot!.turn;
+    vi.advanceTimersByTime(TURN_SECONDS * 1000); // first player times out
+    if (turnOf() === benId) lobby.move(benId, { bid: ana.view().lot!.ask });
+    vi.advanceTimersByTime(TURN_SECONDS * 1000);
+    if (turnOf() === benId) lobby.move(benId, { bid: ana.view().lot!.ask });
+    expect(ana.view().lot!.out).not.toContain(anaId);
   });
 
   it("only lets the person whose turn it is bid", () => {

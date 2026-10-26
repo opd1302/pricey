@@ -8,7 +8,13 @@ import {
 import { BOTS, type Bot } from "./bots";
 import type { Item } from "./items";
 import { pick, seedFrom, seededRandom, shuffle } from "./random";
-import { profitPoints } from "./scoring";
+import {
+  bidderPoints,
+  highestBidOf,
+  outcomeFor,
+  winnerPoints,
+  type Outcome,
+} from "./scoring";
 
 // A whole day's sale: five lots in a row, rebuilt from the choices you've made
 // so far. Lots after the one you're on haven't opened yet.
@@ -77,7 +83,26 @@ function collectorFavourite(puzzle: number, items: Item[]): string {
 /** Points earned on one lot by whoever won it (you, or a bot). */
 export function lotPoints(lot: Lot): number {
   if (!lot.sold?.who) return 0;
-  return profitPoints(lot.item.price, lot.sold.price);
+  return winnerPoints(lot.item.price, lot.sold.price);
+}
+
+/** Points one bidder earned on a lot, whether or not they won it. */
+export function pointsOn(lot: Lot, who: BidderId): number {
+  return bidderPoints(
+    lot.item.price,
+    lot.sold,
+    who,
+    highestBidOf(lot.events, who),
+  );
+}
+
+export function outcomeOn(lot: Lot, who: BidderId): Outcome {
+  return outcomeFor(
+    lot.item.price,
+    lot.sold,
+    who,
+    highestBidOf(lot.events, who),
+  );
 }
 
 /** Everyone's total for the day, best first. You're listed above bots you tie with. */
@@ -87,10 +112,10 @@ export function standings(lots: Lot[]): Standing[] {
     ...(lots[0]?.room ?? []).map((bot) => ({ who: bot.id, score: 0, won: 0 })),
   ];
   for (const lot of lots) {
-    const row = table.find((s) => s.who === lot.sold?.who);
-    if (!row) continue;
-    row.score += lotPoints(lot);
-    row.won += 1;
+    for (const row of table) {
+      row.score += pointsOn(lot, row.who);
+      if (lot.sold?.who === row.who) row.won += 1;
+    }
   }
   return table.sort((a, b) => b.score - a.score);
 }

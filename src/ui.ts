@@ -1,7 +1,7 @@
 // Pieces of the auction screen shared by the daily game and private games.
 import type { AuctionEvent } from "./game/auction";
 import { formatPrice } from "./game/money";
-import { formatPoints } from "./game/scoring";
+import { formatPoints, isSpotOn } from "./game/scoring";
 import type { TableEvent } from "./game/table";
 
 /** A small line drawing of a gavel and its block. The head swings down when shown. */
@@ -30,6 +30,9 @@ export function eventHtml(
     case "open":
       return `Bidding opens at <strong>${formatPrice(event.price)}</strong>.`;
     case "bid":
+      if ("auto" in event && event.auto) {
+        return `<b>${event.who === you ? "You" : nameOf(event.who)}</b> ran out of time: auto-bid <strong>${formatPrice(event.amount)}</strong>.`;
+      }
       return event.who === you
         ? `<b>You</b> bid <strong>${formatPrice(event.amount)}</strong>.`
         : `<b>${nameOf(event.who)}</b> ${event.jump ? "jumps to" : "bids"} <strong>${formatPrice(event.amount)}</strong>.${quote(event.line)}`;
@@ -62,7 +65,7 @@ export function yourTurnHtml(ask: number, note = ""): string {
       </form>
       <button id="drop" class="btn-ghost">Drop out</button>
     </div>
-    <p class="hint" id="custom-hint">Or jump ahead with your own bid. Shortcuts: 1.5k, 2m, 3b.</p>
+    <p class="hint" id="custom-hint">Or jump ahead with your own bid. Shortcuts: 1.5k, 2m, 3b, 4t.</p>
     ${note}
     <p class="error" id="error" role="alert"></p>`;
 }
@@ -74,20 +77,26 @@ export function soldHtml(sale: {
   yours: boolean;
   price: number;
   worth: number;
+  /** The winner's points. */
   points: number;
+  /** Your highest bid, if you bid but didn't win, and the good-read points it earned. */
+  yourRead?: { bid: number; points: number };
   /** A fun fact about the lot, shown small under the reveal. */
   fact?: string;
 }): string {
-  const { buyer, yours, price, worth, points, fact } = sale;
-  const percent = Math.round(Math.abs(1 - price / worth) * 100);
+  const { buyer, yours, price, worth, points, yourRead, fact } = sale;
+  const percentOff = (amount: number) =>
+    Math.round(Math.abs(1 - amount / worth) * 100);
+  const pointsTag = (p: number) =>
+    ` <span class="points ${p < 0 ? "minus" : ""}">${formatPoints(p)}</span>`;
   let verdict: string;
   if (yours) {
-    verdict =
-      points > 0
-        ? `A bargain: you paid ${percent}% less than it's worth.`
-        : points < 0
-          ? `Ouch: you paid ${percent}% more than it's worth.`
-          : "You paid about what it's worth. No gain, no loss.";
+    const lead = isSpotOn(worth, price)
+      ? `Spot on! You paid within ${percentOff(price) || "a whisker"}${percentOff(price) ? "%" : ""} of the real price.`
+      : price < worth
+        ? `A bargain: you paid ${percentOff(price)}% less than it's worth.`
+        : `You paid ${percentOff(price)}% more than it's worth.`;
+    verdict = lead + pointsTag(points);
   } else if (buyer) {
     const outcome =
       points > 0
@@ -95,7 +104,11 @@ export function soldHtml(sale: {
         : points < 0
           ? "overpaid"
           : "paid a fair price";
-    verdict = `${buyer} ${outcome} (${formatPoints(points)}). Nothing for you on this one.`;
+    verdict = `${buyer} ${outcome} (${formatPoints(points)}).`;
+    verdict +=
+      yourRead && yourRead.points > 0
+        ? ` Good read: your top bid was ${percentOff(yourRead.bid)}% off.${pointsTag(yourRead.points)}`
+        : " Nothing for you on this one.";
   } else {
     verdict = "Nobody bid, so no points.";
   }
@@ -109,7 +122,7 @@ export function soldHtml(sale: {
     </div>
     <div class="worth">
       <p><span class="label">It was really worth</span> <strong>${formatPrice(worth)}</strong></p>
-      <p class="verdict">${verdict}${yours ? ` <span class="points ${points < 0 ? "minus" : ""}">${formatPoints(points)}</span>` : ""}</p>
+      <p class="verdict">${verdict}</p>
       ${fact ? `<p class="fun-fact"><span>Did you know?</span>${fact}</p>` : ""}
     </div>`;
 }

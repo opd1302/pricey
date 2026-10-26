@@ -1,5 +1,6 @@
 // The messages the private-game server and players' browsers send each other.
 // Shared by both sides so TypeScript catches any mismatch.
+import type { Outcome } from "../game/scoring";
 import type { TableEvent } from "../game/table";
 
 /** Most bidders at one table, people and rivals together. */
@@ -7,7 +8,7 @@ export const MAX_SEATS = 8;
 export const MIN_PEOPLE = 2;
 /** There are only five rival bots. */
 export const MAX_RIVALS = 5;
-export const TURN_SECONDS = 10;
+export const TURN_SECONDS = 15;
 export const LOT_OPTIONS = [3, 5, 8, 10];
 
 /** Chosen by the host in the waiting room. */
@@ -54,6 +55,8 @@ export interface LotView {
     worth: number;
     points: number;
     fact: string;
+    /** The viewer's highest bid and good-read points, if they bid but didn't win. */
+    yourRead?: { bid: number; points: number };
   } | null;
 }
 
@@ -62,7 +65,11 @@ export interface ResultView {
   buyer: string | null;
   paid: number;
   worth: number;
+  /** The winner's points. */
   points: number;
+  /** The viewer's own points on this lot, and how it went for them. */
+  yourPoints: number;
+  yourOutcome: Outcome;
 }
 
 export interface LobbyView {
